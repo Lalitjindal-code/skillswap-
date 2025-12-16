@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
-  Calendar,
   Map,
   Users,
   FileText,
@@ -14,11 +13,11 @@ import {
   Menu,
   X,
   BarChart3,
-  Bot,
   ChevronDown,
   Trophy,
 } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
+import { SOSModal } from '@/components/SOSModal';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,10 +25,9 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Home' },
-  { path: '/calendar', icon: Calendar, label: 'Calendar' },
-  { path: '/dashboard', icon: Map, label: 'GPS', hash: '#gps' },
+  { path: '/career-gps', icon: Map, label: 'Roadmap' },
   { path: '/marketplace', icon: Users, label: 'Team' },
-  { path: '/profile', icon: FileText, label: 'CV' },
+  { path: '/profile/cv', icon: FileText, label: 'CV' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -38,6 +36,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [gamificationOpen, setGamificationOpen] = useState(true);
+  const [sosOpen, setSOSOpen] = useState(false);
 
   const trophies = [
     { unlocked: true, color: 'from-amber-600 to-amber-400' },
@@ -73,12 +72,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Navigation */}
             <nav className="flex-1 px-3 space-y-1">
               {navItems.map((item, i) => {
-                const fullPath = `${item.path}${item.hash || ''}`;
-                const isActive = location.pathname === item.path && !item.hash;
+                const isActive = location.pathname === item.path;
                 return (
                   <Link
                     key={i}
-                    to={fullPath}
+                    to={item.path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
                         ? 'sidebar-item-active font-semibold'
@@ -91,11 +89,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 );
               })}
               
-              {/* SOS Button in Nav */}
-              <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all w-full">
-                <AlertTriangle className="w-5 h-5" />
-                <span className="font-medium">SOS</span>
-              </button>
             </nav>
 
             {/* Gamification Section */}
@@ -146,11 +139,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             {/* SOS Help Button */}
             <div className="p-3">
-              <button className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-teal/20 text-teal border border-teal/30 hover:bg-teal/30 transition-colors">
-                <AlertTriangle className="w-5 h-5" />
-                <span className="font-semibold">SOS</span>
-                <span className="ml-auto">☀️</span>
-              </button>
+              <motion.button 
+                onClick={() => setSOSOpen(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-red-500/20 text-red-500 border border-red-500/30 hover:bg-red-500/30 transition-colors"
+              >
+                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity }}>
+                  <AlertTriangle className="w-5 h-5" />
+                </motion.div>
+                <span className="font-semibold">SOS Help</span>
+              </motion.button>
             </div>
           </motion.aside>
         )}
@@ -202,15 +201,18 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <BarChart3 className="w-5 h-5 card-text" />
             </button>
             
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center border-2 border-primary">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
+            <Link to="/profile/cv" className="w-10 h-10 rounded-full bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center border-2 border-primary overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all">
+              <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="Profile" className="w-full h-full object-cover" />
+            </Link>
           </div>
         </header>
 
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
+
+      {/* SOS Modal */}
+      <SOSModal isOpen={sosOpen} onClose={() => setSOSOpen(false)} />
     </div>
   );
 };
