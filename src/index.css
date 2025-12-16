@@ -106,18 +106,33 @@
   /* Light card style - matching reference */
   .card-light {
     @apply rounded-2xl;
-    background: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(173, 15%, 97%) 100%);
+    background: linear-gradient(145deg, hsl(40, 30%, 98%) 0%, hsl(173, 15%, 95%) 100%);
     box-shadow: 0 4px 24px -4px hsla(173, 50%, 20%, 0.12);
     border: 1px solid hsla(173, 30%, 80%, 0.5);
+    color: hsl(173, 30%, 20%);
   }
   
   /* Glass card effect */
   .glass-card {
     @apply rounded-2xl border;
-    background: hsla(0, 0%, 100%, 0.95);
+    background: hsla(40, 30%, 98%, 0.95);
     backdrop-filter: blur(20px);
     border-color: hsla(173, 30%, 80%, 0.5);
     box-shadow: 0 4px 24px -4px hsla(173, 50%, 20%, 0.12);
+    color: hsl(173, 30%, 20%);
+  }
+  
+  /* Card text colors for light backgrounds */
+  .card-title {
+    color: hsl(173, 35%, 18%);
+  }
+  
+  .card-text {
+    color: hsl(173, 20%, 35%);
+  }
+  
+  .card-muted {
+    color: hsl(173, 15%, 50%);
   }
   
   /* Glass panel for sidebars */

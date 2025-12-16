@@ -26,11 +26,11 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Home' },
-  { path: '/dashboard', icon: Calendar, label: 'Calendar', hash: '#calendar' },
+  { path: '/calendar', icon: Calendar, label: 'Calendar' },
   { path: '/dashboard', icon: Map, label: 'GPS', hash: '#gps' },
   { path: '/marketplace', icon: Users, label: 'Team' },
   { path: '/profile', icon: FileText, label: 'CV' },
-  { path: '/dashboard', icon: Settings, label: 'Set', hash: '#settings' },
+  { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
@@ -170,36 +170,36 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             {/* Search Bar */}
             <div className="relative hidden md:block">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/95 shadow-sm border border-teal-light/50 min-w-[320px]">
-                <Search className="w-4 h-4 text-muted-foreground" />
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass-card min-w-[320px]">
+                <Search className="w-4 h-4 card-muted" />
                 <input
                   type="text"
                   placeholder="Search Skills"
-                  className="flex-1 bg-transparent text-sm focus:outline-none text-gray-700 placeholder:text-gray-400"
+                  className="flex-1 bg-transparent text-sm focus:outline-none card-text placeholder:text-muted-foreground"
                 />
-                <span className="text-sm text-gray-400 border-l border-gray-200 pl-3">Search</span>
+                <span className="text-sm card-muted border-l border-secondary/20 pl-3">Search</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Coins Pill */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 shadow-sm border border-teal-light/50">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full glass-card">
               <Coins className="w-5 h-5 text-primary" />
-              <span className="font-bold text-gray-700">{user.coins} Coins</span>
+              <span className="font-bold card-title">{user.coins} Coins</span>
             </div>
 
             {/* Level Indicator */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 shadow-sm border border-teal-light/50">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full glass-card">
               <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-gold-dark flex items-center justify-center">
                 <span className="text-xs font-bold text-primary-foreground">▶</span>
               </div>
-              <span className="font-bold text-gray-700">Level {user.level}</span>
+              <span className="font-bold card-title">Level {user.level}</span>
             </div>
 
             {/* Stats & Avatar */}
-            <button className="p-2 rounded-lg bg-white/95 shadow-sm border border-teal-light/50">
-              <BarChart3 className="w-5 h-5 text-gray-600" />
+            <button className="p-2 rounded-lg glass-card">
+              <BarChart3 className="w-5 h-5 card-text" />
             </button>
             
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center border-2 border-primary">

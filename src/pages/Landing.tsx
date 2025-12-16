@@ -112,7 +112,7 @@ export default function Landing() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6"
             >
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm text-gray-600">Join 10,000+ learners worldwide</span>
+              <span className="text-sm card-text">Join 10,000+ learners worldwide</span>
             </motion.div>
 
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-foreground">
@@ -135,7 +135,7 @@ export default function Landing() {
               </Link>
               <a
                 href="#features"
-                className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-white transition-colors text-gray-700"
+                className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-secondary/10 transition-colors card-title"
               >
                 Watch Demo
               </a>
@@ -156,7 +156,7 @@ export default function Landing() {
                   <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-secondary to-teal flex items-center justify-center animate-float">
                     <Sparkles className="w-16 h-16 text-white" />
                   </div>
-                  <p className="text-gray-500">Interactive Platform Preview</p>
+                  <p className="card-muted">Interactive Platform Preview</p>
                 </div>
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function Landing() {
                 className="text-center"
               >
                 <div className="text-3xl md:text-4xl font-bold text-gradient-gold">{stat.value}</div>
-                <div className="text-gray-500 mt-1">{stat.label}</div>
+                <div className="card-muted mt-1">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -223,8 +223,8 @@ export default function Landing() {
                 >
                   <feature.icon className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-800">{feature.title}</h3>
-                <p className="text-gray-500">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-3 card-title">{feature.title}</h3>
+                <p className="card-muted">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -267,16 +267,16 @@ export default function Landing() {
                     Most Popular
                   </div>
                 )}
-                <h3 className="text-2xl font-bold mb-2 text-gray-800">{plan.name}</h3>
+                <h3 className="text-2xl font-bold mb-2 card-title">{plan.name}</h3>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-800">{plan.price}</span>
-                  <span className="text-gray-500">{plan.period}</span>
+                  <span className="text-4xl font-bold card-title">{plan.price}</span>
+                  <span className="card-muted">{plan.period}</span>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, j) => (
                     <li key={j} className="flex items-center gap-3">
                       <Check className={`w-5 h-5 ${plan.highlight ? 'text-primary' : 'text-secondary'}`} />
-                      <span className="text-gray-500">{feature}</span>
+                      <span className="card-muted">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -285,7 +285,7 @@ export default function Landing() {
                   className={`block w-full py-3 rounded-xl font-semibold text-center transition-colors ${
                     plan.highlight
                       ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      : 'bg-secondary/10 hover:bg-secondary/20 card-title'
                   }`}
                 >
                   Get Started
@@ -305,10 +305,10 @@ export default function Landing() {
             viewport={{ once: true }}
             className="glass-card p-12 md:p-20 text-center rounded-3xl border-primary/20 gold-glow"
           >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-gray-800">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 card-title">
               Ready to Start Trading Skills?
             </h2>
-            <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
+            <p className="text-xl card-muted mb-10 max-w-2xl mx-auto">
               Join thousands of learners and mentors in the most innovative education platform.
             </p>
             <Link
