@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Coins, Eye, Map, FileText, Zap, Users, Check, ArrowRight } from 'lucide-react';
+import { Eye, Map, FileText, Zap, Users, Check, ArrowRight, Sparkles } from 'lucide-react';
 
 const features = [
   {
@@ -13,7 +13,7 @@ const features = [
     icon: Map,
     title: 'AI Roadmap',
     description: 'Personalized career GPS that adapts to your pace and learning style.',
-    color: 'electric-blue',
+    color: 'teal',
   },
   {
     icon: FileText,
@@ -56,15 +56,17 @@ const stats = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen overflow-hidden">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-teal/10">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <Coins className="w-5 h-5 text-primary-foreground" />
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center">
+              <span className="text-xl font-bold text-white">S</span>
             </div>
-            <span className="text-xl font-bold tracking-tight">SkillSync</span>
+            <span className="text-xl font-bold tracking-tight text-foreground">
+              Skill<span className="text-primary">Swap</span>
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -91,9 +93,9 @@ export default function Landing() {
       <section className="relative min-h-screen flex items-center justify-center pt-16">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-blob" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-purple/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal/20 rounded-full blur-3xl animate-blob" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-secondary/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
@@ -110,10 +112,10 @@ export default function Landing() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6"
             >
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Join 10,000+ learners worldwide</span>
+              <span className="text-sm text-gray-600">Join 10,000+ learners worldwide</span>
             </motion.div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-foreground">
               Your Time is the{' '}
               <span className="text-gradient-gold">New Currency</span>
             </h1>
@@ -133,7 +135,7 @@ export default function Landing() {
               </Link>
               <a
                 href="#features"
-                className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-muted/50 transition-colors"
+                className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-white transition-colors text-gray-700"
               >
                 Watch Demo
               </a>
@@ -148,13 +150,13 @@ export default function Landing() {
             className="mt-16 relative"
           >
             <div className="w-full max-w-3xl mx-auto aspect-video rounded-2xl glass-card overflow-hidden border border-primary/20 gold-glow">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
+              <div className="absolute inset-0 bg-gradient-to-br from-teal/10 to-primary/10" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/40 flex items-center justify-center animate-float">
-                    <Coins className="w-16 h-16 text-primary-foreground" />
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-secondary to-teal flex items-center justify-center animate-float">
+                    <Sparkles className="w-16 h-16 text-white" />
                   </div>
-                  <p className="text-muted-foreground">Interactive Platform Preview</p>
+                  <p className="text-gray-500">Interactive Platform Preview</p>
                 </div>
               </div>
             </div>
@@ -163,7 +165,7 @@ export default function Landing() {
       </section>
 
       {/* Stats Strip */}
-      <section className="py-12 glass-panel border-y border-white/5">
+      <section className="py-12 glass-card mx-6 rounded-2xl -mt-8 relative z-20">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
@@ -176,7 +178,7 @@ export default function Landing() {
                 className="text-center"
               >
                 <div className="text-3xl md:text-4xl font-bold text-gradient-gold">{stat.value}</div>
-                <div className="text-muted-foreground mt-1">{stat.label}</div>
+                <div className="text-gray-500 mt-1">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -192,7 +194,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold tracking-tight mb-4">
+            <h2 className="text-4xl font-bold tracking-tight mb-4 text-foreground">
               Revolutionary Learning Features
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -208,21 +210,21 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.15 }}
                 viewport={{ once: true }}
-                className="glass-card p-8 hover:border-primary/30 transition-all duration-300 group"
+                className="glass-card p-8 hover:shadow-xl transition-all duration-300 group"
               >
                 <div
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${
                     feature.color === 'purple'
                       ? 'bg-purple/20 text-purple'
-                      : feature.color === 'electric-blue'
+                      : feature.color === 'teal'
                       ? 'bg-secondary/20 text-secondary'
                       : 'bg-primary/20 text-primary'
                   }`}
                 >
                   <feature.icon className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">{feature.title}</h3>
+                <p className="text-gray-500">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -238,7 +240,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold tracking-tight mb-4">
+            <h2 className="text-4xl font-bold tracking-tight mb-4 text-foreground">
               Simple, Transparent Pricing
             </h2>
             <p className="text-muted-foreground text-lg">
@@ -257,7 +259,7 @@ export default function Landing() {
                 className={`glass-card p-8 ${
                   plan.highlight
                     ? 'border-primary gold-glow scale-105'
-                    : 'hover:border-white/20'
+                    : 'hover:shadow-xl'
                 } transition-all duration-300`}
               >
                 {plan.highlight && (
@@ -265,16 +267,16 @@ export default function Landing() {
                     Most Popular
                   </div>
                 )}
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <h3 className="text-2xl font-bold mb-2 text-gray-800">{plan.name}</h3>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground">{plan.period}</span>
+                  <span className="text-4xl font-bold text-gray-800">{plan.price}</span>
+                  <span className="text-gray-500">{plan.period}</span>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, j) => (
                     <li key={j} className="flex items-center gap-3">
                       <Check className={`w-5 h-5 ${plan.highlight ? 'text-primary' : 'text-secondary'}`} />
-                      <span className="text-muted-foreground">{feature}</span>
+                      <span className="text-gray-500">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -283,7 +285,7 @@ export default function Landing() {
                   className={`block w-full py-3 rounded-xl font-semibold text-center transition-colors ${
                     plan.highlight
                       ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'bg-muted hover:bg-muted/80'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   }`}
                 >
                   Get Started
@@ -303,10 +305,10 @@ export default function Landing() {
             viewport={{ once: true }}
             className="glass-card p-12 md:p-20 text-center rounded-3xl border-primary/20 gold-glow"
           >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-gray-800">
               Ready to Start Trading Skills?
             </h2>
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
               Join thousands of learners and mentors in the most innovative education platform.
             </p>
             <Link
@@ -321,17 +323,17 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/5">
+      <footer className="py-12 border-t border-teal/10">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Coins className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center">
+                <span className="text-sm font-bold text-white">S</span>
               </div>
-              <span className="font-semibold">SkillSync</span>
+              <span className="font-semibold text-foreground">SkillSwap</span>
             </div>
             <p className="text-muted-foreground text-sm">
-              © 2024 SkillSync. Your time, your currency.
+              © 2024 SkillSwap. Your time, your currency.
             </p>
           </div>
         </div>

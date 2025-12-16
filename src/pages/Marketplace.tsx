@@ -104,8 +104,8 @@ export default function Marketplace() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold mb-2">Marketplace</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2 text-foreground">Marketplace</h1>
+          <p className="text-foreground/70">
             Discover new learning opportunities and collaborate with others
           </p>
         </motion.div>

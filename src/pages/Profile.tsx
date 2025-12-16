@@ -44,7 +44,7 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 rounded-2xl"
+          className="glass-card p-8 rounded-2xl text-gray-700"
         >
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Avatar with Ring */}
@@ -76,7 +76,7 @@ export default function Profile() {
                   </span>
                 )}
               </div>
-              <p className="text-muted-foreground mb-4">{user.email || 'user@skillsync.com'}</p>
+              <p className="text-muted-foreground mb-4">{user.email || 'user@skillswap.com'}</p>
               
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <span className="px-4 py-2 rounded-xl bg-muted/50 text-sm flex items-center gap-2">
