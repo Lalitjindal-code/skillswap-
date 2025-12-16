@@ -65,26 +65,26 @@ export default function Dashboard() {
         >
           <div className="flex items-center gap-6">
             <div>
-              <h2 className="text-lg font-bold text-gray-800">Go Pro to Remove Ads</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-lg font-bold card-title">Go Pro to Remove Ads</h2>
+              <p className="text-sm card-muted">
                 Upgrade to <span className="font-semibold text-primary">SkillSwap Pro</span> and enjoy an ad-free experience!
               </p>
             </div>
             <div className="flex items-center gap-4 ml-8">
-              <div className="px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-400">
+              <div className="px-4 py-2 border border-dashed border-secondary/30 rounded-lg text-sm card-muted">
                 Your ad here
               </div>
-              <div className="px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-400">
+              <div className="px-4 py-2 border border-dashed border-secondary/30 rounded-lg text-sm card-muted">
                 Your ad here
               </div>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm card-text">
                 Upgrade to <span className="font-bold text-primary">SkillSwap</span> Pro
               </p>
-              <p className="text-sm text-gray-500">and enjoy an ad-free experience!</p>
+              <p className="text-sm card-muted">and enjoy an ad-free experience!</p>
             </div>
             <button className="px-5 py-2.5 rounded-xl bg-secondary text-white font-semibold hover:bg-secondary/90 transition-colors">
               Upgrade Now
@@ -103,7 +103,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center gap-2 mb-4">
               <span className="text-2xl">🌅</span>
-              <h2 className="text-lg font-bold text-gray-800">Upcoming Session</h2>
+              <h2 className="text-lg font-bold card-title">Upcoming Session</h2>
             </div>
             
             <div className="flex items-center justify-between">
@@ -111,19 +111,19 @@ export default function Dashboard() {
                 <img
                   src="https://api.dicebear.com/7.x/avataaars/svg?seed=amit"
                   alt="Mentor"
-                  className="w-14 h-14 rounded-full bg-gray-100"
+                  className="w-14 h-14 rounded-full bg-secondary/10"
                 />
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">React Basics</h3>
+                  <h3 className="text-xl font-bold card-title">React Basics</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm text-gray-500">👤 Amit</span>
+                    <span className="text-sm card-muted">👤 Amit</span>
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-primary fill-primary" />
                       <Star className="w-4 h-4 text-primary fill-primary" />
-                      <span className="text-sm text-gray-600">4.8</span>
+                      <span className="text-sm card-text">4.8</span>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-gray-700 mt-2">Starts in: 10m</p>
+                  <p className="text-sm font-semibold card-text mt-2">Starts in: 10m</p>
                 </div>
               </div>
               
@@ -155,19 +155,19 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-secondary" />
-                <h2 className="text-lg font-bold text-gray-800">Career GPS (AI)</h2>
+                <h2 className="text-lg font-bold card-title">Career GPS (AI)</h2>
               </div>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <MoreHorizontal className="w-5 h-5 text-gray-400" />
+              <button className="p-1 hover:bg-secondary/10 rounded">
+                <MoreHorizontal className="w-5 h-5 card-muted" />
               </button>
             </div>
             
             <div className="space-y-3">
               {roadmapNodes.map((node) => (
                 <div key={node.id} className="flex items-center gap-3">
-                  <Check className={`w-5 h-5 ${node.status === 'completed' ? 'text-secondary' : 'text-gray-300'}`} />
-                  <span className="font-medium text-gray-700 w-16">{node.label}</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <Check className={`w-5 h-5 ${node.status === 'completed' ? 'text-secondary' : 'card-muted'}`} />
+                  <span className="font-medium card-text w-16">{node.label}</span>
+                  <div className="flex-1 h-2 bg-secondary/10 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full ${node.status === 'completed' ? 'bg-secondary' : 'bg-primary'}`}
                       style={{ width: `${node.progress}%` }}
@@ -198,8 +198,8 @@ export default function Dashboard() {
         >
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">🔥</span>
-            <h2 className="text-lg font-bold text-gray-800">Snippet Shorts</h2>
-            <span className="text-sm text-gray-500">TikTok-Style Discovery</span>
+            <h2 className="text-lg font-bold card-title">Snippet Shorts</h2>
+            <span className="text-sm card-muted">TikTok-Style Discovery</span>
           </div>
           
           <div className="relative">
@@ -242,8 +242,8 @@ export default function Dashboard() {
             </div>
             
             {/* Navigation Arrows */}
-            <button className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            <button className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full glass-card shadow-lg flex items-center justify-center hover:bg-secondary/10 transition-colors">
+              <ChevronLeft className="w-5 h-5 card-text" />
             </button>
             <button className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-secondary text-white shadow-lg flex items-center justify-center hover:bg-secondary/90 transition-colors">
               <ChevronRight className="w-5 h-5" />
