@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
 import { SOSModal } from '@/components/SOSModal';
+import { NotificationDropdown } from '@/components/NotificationDropdown';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -196,7 +197,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <span className="font-bold card-title">Level {user.level}</span>
             </div>
 
-            {/* Stats & Avatar */}
+            {/* Notifications */}
+            <NotificationDropdown />
+
+            {/* Stats */}
             <button className="p-2 rounded-lg glass-card">
               <BarChart3 className="w-5 h-5 card-text" />
             </button>
