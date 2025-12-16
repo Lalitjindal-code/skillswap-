@@ -3,18 +3,20 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
+  Calendar,
   Map,
-  Eye,
   Users,
-  Bell,
+  FileText,
+  Settings,
+  AlertTriangle,
   Search,
   Coins,
-  AlertTriangle,
   Menu,
   X,
-  User,
-  ShoppingBag,
-  LogOut,
+  BarChart3,
+  Bot,
+  ChevronDown,
+  Trophy,
 } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
 
@@ -24,20 +26,28 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Home' },
-  { path: '/dashboard', icon: Map, label: 'Roadmap', hash: '#roadmap' },
-  { path: '/marketplace', icon: Eye, label: 'Shadow Mode' },
-  { path: '/marketplace', icon: Users, label: 'Group Pool', hash: '#pool' },
+  { path: '/dashboard', icon: Calendar, label: 'Calendar', hash: '#calendar' },
+  { path: '/dashboard', icon: Map, label: 'GPS', hash: '#gps' },
+  { path: '/marketplace', icon: Users, label: 'Team' },
+  { path: '/profile', icon: FileText, label: 'CV' },
+  { path: '/dashboard', icon: Settings, label: 'Set', hash: '#settings' },
 ];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { user, notifications } = useGlobal();
+  const { user } = useGlobal();
   const location = useLocation();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const [gamificationOpen, setGamificationOpen] = useState(true);
+
+  const trophies = [
+    { unlocked: true, color: 'from-amber-600 to-amber-400' },
+    { unlocked: true, color: 'from-gray-400 to-gray-300' },
+    { unlocked: true, color: 'from-amber-500 to-yellow-400' },
+    { unlocked: false, color: 'from-gray-600 to-gray-500' },
+  ];
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen flex">
       {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -46,30 +56,33 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed lg:relative z-40 w-64 h-screen glass-panel border-r border-white/5 flex flex-col"
+            className="fixed lg:relative z-40 w-64 h-screen glass-panel flex flex-col"
           >
-            <div className="p-6">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                  <Coins className="w-5 h-5 text-primary-foreground" />
+            {/* Logo */}
+            <div className="p-5">
+              <Link to="/" className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center">
+                  <span className="text-xl font-bold text-white">S</span>
                 </div>
-                <span className="text-xl font-bold tracking-tight text-foreground">
-                  SkillSync
+                <span className="text-xl font-bold tracking-tight text-white">
+                  Skill<span className="text-primary">Swap</span>
                 </span>
               </Link>
             </div>
 
-            <nav className="flex-1 px-4 space-y-2">
+            {/* Navigation */}
+            <nav className="flex-1 px-3 space-y-1">
               {navItems.map((item, i) => {
-                const isActive = location.pathname === item.path;
+                const fullPath = `${item.path}${item.hash || ''}`;
+                const isActive = location.pathname === item.path && !item.hash;
                 return (
                   <Link
                     key={i}
-                    to={`${item.path}${item.hash || ''}`}
+                    to={fullPath}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? 'bg-primary/10 text-primary gold-glow'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                        ? 'sidebar-item-active font-semibold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
@@ -77,13 +90,66 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   </Link>
                 );
               })}
+              
+              {/* SOS Button in Nav */}
+              <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all w-full">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-medium">SOS</span>
+              </button>
             </nav>
 
-            {/* SOS Button */}
-            <div className="p-4 mt-auto">
-              <button className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-accent/20 text-accent pulse-red hover:bg-accent/30 transition-colors">
+            {/* Gamification Section */}
+            <div className="px-3 pb-3">
+              <button
+                onClick={() => setGamificationOpen(!gamificationOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-muted/30 text-foreground"
+              >
+                <span className="font-semibold text-sm uppercase tracking-wider">Gamification</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${gamificationOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              <AnimatePresence>
+                {gamificationOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3 px-2">
+                      <div className="flex justify-center gap-2 mb-3">
+                        {trophies.map((trophy, i) => (
+                          <div
+                            key={i}
+                            className={`w-10 h-10 rounded-lg bg-gradient-to-b ${trophy.color} flex items-center justify-center ${
+                              !trophy.unlocked ? 'opacity-40' : ''
+                            }`}
+                          >
+                            <Trophy className="w-5 h-5 text-white" />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-2xl font-bold text-primary">60%</span>
+                          <span className="text-sm text-muted-foreground">to Golden Tick</span>
+                        </div>
+                        <div className="w-full h-2 bg-muted rounded-full mt-2 overflow-hidden">
+                          <div className="h-full w-3/5 bg-gradient-to-r from-primary to-gold-dark rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* SOS Help Button */}
+            <div className="p-3">
+              <button className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-teal/20 text-teal border border-teal/30 hover:bg-teal/30 transition-colors">
                 <AlertTriangle className="w-5 h-5" />
-                <span className="font-semibold">SOS Help</span>
+                <span className="font-semibold">SOS</span>
+                <span className="ml-auto">☀️</span>
               </button>
             </div>
           </motion.aside>
@@ -93,85 +159,52 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Topbar */}
-        <header className="h-16 glass-panel border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-30">
+        <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-30 bg-transparent">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              className="p-2 rounded-lg hover:bg-muted/30 transition-colors text-foreground lg:hidden"
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
+            {/* Search Bar */}
             <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search skills, mentors..."
-                className="w-64 pl-10 pr-4 py-2 rounded-xl bg-muted/50 border border-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground"
-              />
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/95 shadow-sm border border-teal-light/50 min-w-[320px]">
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search Skills"
+                  className="flex-1 bg-transparent text-sm focus:outline-none text-gray-700 placeholder:text-gray-400"
+                />
+                <span className="text-sm text-gray-400 border-l border-gray-200 pl-3">Search</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Wallet Pill */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full glass-card gold-glow">
-              <Coins className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary">{user.coins} Coins</span>
+          <div className="flex items-center gap-3">
+            {/* Coins Pill */}
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 shadow-sm border border-teal-light/50">
+              <Coins className="w-5 h-5 text-primary" />
+              <span className="font-bold text-gray-700">{user.coins} Coins</span>
             </div>
 
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-accent text-accent-foreground text-xs rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              <AnimatePresence>
-                {showNotifications && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-80 glass-card p-4 rounded-xl"
-                  >
-                    <h4 className="font-semibold mb-3">Notifications</h4>
-                    <div className="space-y-3">
-                      {notifications.map(n => (
-                        <div
-                          key={n.id}
-                          className={`p-3 rounded-lg ${n.read ? 'bg-muted/30' : 'bg-primary/10'}`}
-                        >
-                          <p className="font-medium text-sm">{n.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
-                          <span className="text-xs text-muted-foreground">{n.time}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {/* Level Indicator */}
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 shadow-sm border border-teal-light/50">
+              <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-gold-dark flex items-center justify-center">
+                <span className="text-xs font-bold text-primary-foreground">▶</span>
+              </div>
+              <span className="font-bold text-gray-700">Level {user.level}</span>
             </div>
 
-            {/* Profile Links */}
-            <Link
-              to="/profile"
-              className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <User className="w-5 h-5" />
-            </Link>
-            <Link
-              to="/marketplace"
-              className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <ShoppingBag className="w-5 h-5" />
-            </Link>
+            {/* Stats & Avatar */}
+            <button className="p-2 rounded-lg bg-white/95 shadow-sm border border-teal-light/50">
+              <BarChart3 className="w-5 h-5 text-gray-600" />
+            </button>
+            
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center border-2 border-primary">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
           </div>
         </header>
 

@@ -58,13 +58,15 @@ export default function Login() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="glass-card p-8 rounded-2xl">
+        <div className="glass-card p-8 rounded-2xl text-gray-700">
           {/* Logo */}
           <Link to="/" className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center gold-glow">
-              <Coins className="w-6 h-6 text-primary-foreground" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center">
+              <span className="text-2xl font-bold text-white">S</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight">SkillSync</span>
+            <span className="text-2xl font-bold tracking-tight text-gray-800">
+              Skill<span className="text-primary">Swap</span>
+            </span>
           </Link>
 
           <h1 className="text-2xl font-bold text-center mb-2">Welcome Back</h1>
