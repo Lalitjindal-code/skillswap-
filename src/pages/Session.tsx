@@ -17,6 +17,7 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react';
+import { SignalingService } from '@/services/SignalingService';
 
 const aiNotes = [
   "📝 Topic: Introduction to Physics",
@@ -35,12 +36,23 @@ const chatMessages = [
   { sender: 'Amit', message: "Let's start with basics", time: '10:02' },
 ];
 
+const rtcConfig = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+  ],
+};
+
 export default function Session() {
   const { id } = useParams();
+  const userId = useRef(`user-${Math.floor(Math.random() * 10000)}`).current; // Simple random ID
+
+  // Canvas Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState<'pen' | 'eraser' | 'circle' | 'square'>('pen');
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+
+  // State
   const [time, setTime] = useState(0);
   const [notes, setNotes] = useState<string[]>([]);
   const [noteIndex, setNoteIndex] = useState(0);
@@ -48,7 +60,102 @@ export default function Session() {
   const [newMessage, setNewMessage] = useState('');
   const [videoOn, setVideoOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
+
+  // WebRTC Refs
+  const userVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const signaling = useRef<SignalingService | null>(null);
   const notesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Initialize WebRTC & Signaling
+  useEffect(() => {
+    const roomId = id || 'default-room';
+
+    // 1. Setup PeerConnection
+    peerConnection.current = new RTCPeerConnection(rtcConfig);
+
+    peerConnection.current.onicecandidate = (event) => {
+      if (event.candidate) {
+        signaling.current?.sendSignal('candidate', event.candidate);
+      }
+    };
+
+    peerConnection.current.ontrack = (event) => {
+      console.log("Remote track received:", event.streams[0]);
+      setRemoteStream(event.streams[0]);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    // 2. Setup Signaling
+    signaling.current = new SignalingService(roomId, userId, async (data) => {
+      if (!peerConnection.current) return;
+
+      if (data.type === 'offer') {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.payload));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+        signaling.current?.sendSignal('answer', answer);
+      } else if (data.type === 'answer') {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.payload));
+      } else if (data.type === 'candidate') {
+        await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.payload));
+      }
+    });
+
+    signaling.current.connect();
+
+    // 3. Get User Media
+    const startMedia = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setLocalStream(stream);
+        if (userVideoRef.current) {
+          userVideoRef.current.srcObject = stream;
+        }
+        stream.getTracks().forEach(track => {
+          peerConnection.current?.addTrack(track, stream);
+        });
+
+        // Initiate call (simple logic: random delay to spread out collisions, or manual trigger)
+        // For this demo, we'll try to create an offer after a short delay to allow connection
+        setTimeout(async () => {
+          const pc = peerConnection.current;
+          if (pc && pc.signalingState === 'stable') { // Only offer if we haven't received one
+            // Create Data Channel if needed for chat, etc.
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            signaling.current?.sendSignal('offer', offer);
+          }
+        }, 2000);
+
+      } catch (err) {
+        console.error("Error accessing media:", err);
+        setVideoOn(false);
+      }
+    };
+
+    startMedia();
+
+    return () => {
+      localStream?.getTracks().forEach(track => track.stop());
+      peerConnection.current?.close();
+      signaling.current?.disconnect();
+    };
+  }, [id]);
+
+  // Handle Media Toggle
+  useEffect(() => {
+    if (localStream) {
+      localStream.getVideoTracks().forEach(track => track.enabled = videoOn);
+      localStream.getAudioTracks().forEach(track => track.enabled = micOn);
+    }
+  }, [videoOn, micOn, localStream]);
+
 
   // Timer
   useEffect(() => {
@@ -61,14 +168,12 @@ export default function Session() {
   // AI Notes simulation
   useEffect(() => {
     if (noteIndex >= aiNotes.length) return;
-    
     const interval = setInterval(() => {
       if (noteIndex < aiNotes.length) {
         setNotes(prev => [...prev, aiNotes[noteIndex]]);
         setNoteIndex(prev => prev + 1);
       }
     }, 5000);
-    
     return () => clearInterval(interval);
   }, [noteIndex]);
 
@@ -83,13 +188,13 @@ export default function Session() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    
+
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
@@ -97,7 +202,7 @@ export default function Session() {
   const getPosition = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
-    
+
     const rect = canvas.getBoundingClientRect();
     return {
       x: e.clientX - rect.left,
@@ -155,14 +260,14 @@ export default function Session() {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!ctx || !canvas) return;
-    
+
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
   const sendMessage = useCallback(() => {
     if (!newMessage.trim()) return;
-    
+
     setMessages(prev => [...prev, {
       sender: 'You',
       message: newMessage,
@@ -211,33 +316,29 @@ export default function Session() {
           <div className="flex items-center gap-2 mb-4">
             <button
               onClick={() => setTool('pen')}
-              className={`p-3 rounded-xl transition-all ${
-                tool === 'pen' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
-              }`}
+              className={`p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
+                }`}
             >
               <Pen className="w-5 h-5" />
             </button>
             <button
               onClick={() => setTool('eraser')}
-              className={`p-3 rounded-xl transition-all ${
-                tool === 'eraser' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
-              }`}
+              className={`p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
+                }`}
             >
               <Eraser className="w-5 h-5" />
             </button>
             <button
               onClick={() => setTool('circle')}
-              className={`p-3 rounded-xl transition-all ${
-                tool === 'circle' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
-              }`}
+              className={`p-3 rounded-xl transition-all ${tool === 'circle' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
+                }`}
             >
               <Circle className="w-5 h-5" />
             </button>
             <button
               onClick={() => setTool('square')}
-              className={`p-3 rounded-xl transition-all ${
-                tool === 'square' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
-              }`}
+              className={`p-3 rounded-xl transition-all ${tool === 'square' ? 'bg-primary text-primary-foreground' : 'glass-card hover:bg-muted/50'
+                }`}
             >
               <Square className="w-5 h-5" />
             </button>
@@ -266,30 +367,52 @@ export default function Session() {
         <div className="w-80 glass-panel border-l border-white/5 flex flex-col">
           {/* Video Section */}
           <div className="p-4 border-b border-white/5">
-            <div className="aspect-video rounded-xl bg-muted/30 mb-2 overflow-hidden relative">
-              <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=amit"
-                alt="Mentor"
-                className="w-full h-full object-cover opacity-60"
-              />
-              <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-background/80 text-xs">
-                Amit Sharma
+            {/* Remote Video (Connected Peer) */}
+            <div className="aspect-video rounded-xl bg-muted/30 mb-2 overflow-hidden relative group">
+              {remoteStream ? (
+                <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1000&auto=format&fit=crop" alt="Mentor Placeholder" className="w-full h-full object-cover opacity-60" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white/50 text-xs animate-pulse">Waiting for mentor...</span>
+                  </div>
+                </>
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+              <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-black/40 backdrop-blur-md text-xs font-semibold text-white border border-white/10">
+                {remoteStream ? "Mentor (Live)" : "Amit Sharma (Offline)"}
               </div>
             </div>
-            <div className="flex justify-center gap-2">
+
+            {/* Local Video (Self) */}
+            <div className="aspect-video rounded-xl bg-black/50 overflow-hidden relative border border-white/10">
+              {videoOn ? (
+                <video ref={userVideoRef} autoPlay muted playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  <VideoOff className="w-8 h-8 opacity-50" />
+                </div>
+              )}
+              <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-black/40 backdrop-blur-md text-xs font-semibold text-white border border-white/10">
+                You {micOn ? '' : '(Muted)'}
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex justify-center gap-2 mt-4">
               <button
                 onClick={() => setVideoOn(!videoOn)}
-                className={`p-3 rounded-xl transition-all ${
-                  videoOn ? 'glass-card' : 'bg-accent text-accent-foreground'
-                }`}
+                className={`p-3 rounded-xl transition-all ${videoOn ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                  }`}
               >
                 {videoOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
               </button>
               <button
                 onClick={() => setMicOn(!micOn)}
-                className={`p-3 rounded-xl transition-all ${
-                  micOn ? 'glass-card' : 'bg-accent text-accent-foreground'
-                }`}
+                className={`p-3 rounded-xl transition-all ${micOn ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                  }`}
               >
                 {micOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
               </button>
@@ -337,9 +460,8 @@ export default function Session() {
                   className={`text-sm ${msg.sender === 'You' ? 'text-right' : ''}`}
                 >
                   <span className="text-muted-foreground text-xs">{msg.sender} • {msg.time}</span>
-                  <p className={`mt-0.5 px-3 py-1.5 rounded-lg inline-block ${
-                    msg.sender === 'You' ? 'bg-primary text-primary-foreground' : 'bg-muted/50'
-                  }`}>
+                  <p className={`mt-0.5 px-3 py-1.5 rounded-lg inline-block ${msg.sender === 'You' ? 'bg-primary text-primary-foreground' : 'bg-muted/50'
+                    }`}>
                     {msg.message}
                   </p>
                 </div>

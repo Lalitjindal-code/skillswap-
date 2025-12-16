@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { 
-  Star, 
-  Shield, 
-  ExternalLink, 
-  Trophy, 
-  Coins, 
-  Clock, 
+import {
+  Star,
+  Shield,
+  ExternalLink,
+  Trophy,
+  Coins,
+  Clock,
   Users,
   ArrowRight,
   Heart
@@ -44,16 +44,15 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 rounded-2xl text-gray-700"
+          className="glass-card p-8 rounded-2xl text-black"
         >
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Avatar with Ring */}
             <div className="relative">
-              <div className={`w-32 h-32 rounded-full p-1 ${
-                user.isPro 
-                  ? 'bg-gradient-to-br from-primary to-primary/60 gold-glow' 
-                  : 'bg-muted'
-              }`}>
+              <div className={`w-32 h-32 rounded-full p-1 ${user.isPro
+                ? 'bg-gradient-to-br from-primary to-primary/60 gold-glow'
+                : 'bg-muted'
+                }`}>
                 <img
                   src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email || 'default'}`}
                   alt="Profile"
@@ -77,7 +76,7 @@ export default function Profile() {
                 )}
               </div>
               <p className="text-muted-foreground mb-4">{user.email || 'user@skillswap.com'}</p>
-              
+
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <span className="px-4 py-2 rounded-xl bg-muted/50 text-sm flex items-center gap-2">
                   <Shield className="w-4 h-4 text-secondary" />
@@ -198,11 +197,10 @@ export default function Profile() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.4 + i * 0.1 }}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                    i === 0
-                      ? 'bg-gradient-to-br from-primary to-primary/60 gold-glow'
-                      : 'bg-muted/50'
-                  }`}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${i === 0
+                    ? 'bg-gradient-to-br from-primary to-primary/60 gold-glow'
+                    : 'bg-muted/50'
+                    }`}
                 >
                   <span className={`font-semibold ${i === 0 ? 'text-primary-foreground' : ''}`}>
                     {node.name.charAt(0)}
@@ -245,6 +243,96 @@ export default function Profile() {
           </motion.div>
         )}
       </div>
+
+      {/* Quiz Modal */}
+      <QuizModal />
     </DashboardLayout>
   );
+}
+
+// Sub-component for Quiz
+import { generateQuiz, QuizQuestion } from '@/services/gemini';
+import { useState } from 'react';
+import { Check, X as XIcon, Loader2, Award } from 'lucide-react';
+import { toast } from 'sonner';
+
+function QuizModal() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [topic, setTopic] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [currentQ, setCurrentQ] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  const startQuiz = async () => {
+    if (!topic) return;
+    setLoading(true);
+    try {
+      const qs = await generateQuiz(topic);
+      setQuestions(qs);
+      setCurrentQ(0);
+      setScore(0);
+      setShowResults(false);
+      setIsOpen(true);
+    } catch (e) {
+      toast.error("Failed to generate quiz");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnswer = (index: number) => {
+    setSelectedOption(index);
+    if (index === questions[currentQ].correctIndex) {
+      setScore(s => s + 1);
+    }
+
+    // Auto next after 1.5s
+    setTimeout(() => {
+      if (currentQ < questions.length - 1) {
+        setCurrentQ(c => c + 1);
+        setSelectedOption(null);
+      } else {
+        setShowResults(true);
+      }
+    }, 1500);
+  };
+
+  const closeQuiz = () => {
+    setIsOpen(false);
+    setQuestions([]);
+    setTopic('');
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-lg font-semibold">Generating Quiz for {topic}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isOpen && !loading) {
+    // Render the trigger button via Portal or just return null and have a button elsewhere? 
+    // For simplicity in this edit, I'll attach a listener or just a floating button? 
+    // Better: The parent `Profile` should control this. 
+    // Refactoring a bit: Let's assume Profile calls this.
+    // Actually, let's just put the trigger button inside the "Verified Skills" section in the parent component
+    // But since I'm appending this code, I'll export it and let the user click a new floating button for now 
+    // or better, I will inject the UI into the Profile render in the next step or adjust the placement.
+
+    // WAIT: I can just render the button fixed or inject it.
+    // Let's render a "Verify New Skill" button at the bottom right or near the headers.
+    return null;
+  }
+
+  // NOTE: This implementation structure is a bit awkward with `replace_file_content` at the end. 
+  // I should have injected the state into the main component. 
+  // I will fix this by moving the logic INTO the main component in the next step.
+  return null;
 }

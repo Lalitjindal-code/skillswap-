@@ -1,73 +1,91 @@
-# Welcome to your Lovable project
+# SkillSwap 🤝
 
-## Project info
+**SkillSwap** is a revolutionary peer-to-peer skill exchange platform where **time is the currency**. Teach what you know, earn time credits, and use them to learn what you need from others. No money involved—just pure knowledge exchange.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![SkillSwap Banner](/public/logo.png)
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### 🎓 Learning & Teaching
+- **Shadow Mode**: Join "stealth" sessions to observe experts working in real-time without interrupting flow.
+- **P2P Video Calling**: Integrated WebRTC video sessions for face-to-face mentoring.
+- **Canvas Whiteboard**: Interactive collaborative whiteboard for explaining concepts.
+- **AI Notes**: Real-time AI-powered session summarization (Mock/Prototype).
 
-**Use Lovable**
+### 🎮 Gamification & Growth
+- **Time Banking**: Earn coins for every minute you teach.
+- **Career GPS**: AI-generated learning roadmaps tailored to your goals.
+- **Skill Verification**: Blockchain-style verification for skills you demonstrate.
+- **Badges & Levels**: Progress from Novice to Expert with visual rewards.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 🛠 Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend Builder**: [Vite](https://vitejs.dev/) + [React](https://react.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + Vanilla CSS (Glassmorphism)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) + [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Backend & Auth**: [Supabase](https://supabase.com/) (Postgres, Auth, Realtime)
+- **AI Integration**: [Google Gemini API](https://ai.google.dev/) (Planned/Partial)
 
-**Use your preferred IDE**
+## 📦 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js (v18 or higher)
+- npm or yarn
+- A [Supabase](https://supabase.com/) account
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/yourusername/skill-swap.git
+    cd skill-swap
+    ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3.  **Configure Environment Variables**
+    Create a `.env` file in the root directory and add your Supabase credentials:
+    ```env
+    VITE_SUPABASE_URL=your_supabase_project_url
+    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+    VITE_GEMINI_API_KEY=your_google_gemini_key
+    ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+4.  **Database Setup**
+    Run the SQL commands found in `supabase_schema.sql` in your Supabase Dashboard's SQL Editor to set up the `profiles` table and triggers.
+
+5.  **Run the application**
+    ```bash
+    npm run dev
+    ```
+    Open `http://localhost:8080` in your browser.
+
+## 📂 Project Structure
+
+```
+skill-swap/
+├── public/              # Static assets (logo, favicon)
+├── src/
+│   ├── components/      # Reusable UI components
+│   ├── contexts/        # Global state (Auth, User)
+│   ├── integrations/    # Supabase & External Services
+│   ├── pages/           # Application Routes (Login, Dashboard, Session)
+│   ├── services/        # Logic services (Signaling, AI)
+│   └── App.tsx          # Main Entry
+├── supabase/            # Migrations and SQL types
+└── vite.config.ts       # Vite Configuration
 ```
 
-**Edit a file directly in GitHub**
+## 🤝 Contributing
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-**Use GitHub Codespaces**
+## 📄 License
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

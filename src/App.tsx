@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import CareerGPS from "./pages/CareerGPS";
 import ShadowJoin from "./pages/ShadowJoin";
 import GroupJoin from "./pages/GroupJoin";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/career-gps" element={<CareerGPS />} />
               <Route path="/shadow-join/:id" element={<ShadowJoin />} />
               <Route path="/group-join/:id" element={<GroupJoin />} />
+              <Route path="/pricing" element={<Pricing />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

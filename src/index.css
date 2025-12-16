@@ -9,34 +9,34 @@
     /* Teal/Cyan theme inspired by reference */
     --background: 173 41% 15%;
     --foreground: 0 0% 98%;
-    
+
     --card: 173 35% 20%;
     --card-foreground: 0 0% 98%;
-    
+
     --popover: 173 35% 18%;
     --popover-foreground: 0 0% 98%;
-    
+
     --primary: 43 96% 56%;
     --primary-foreground: 173 41% 12%;
-    
+
     --secondary: 173 60% 45%;
     --secondary-foreground: 0 0% 98%;
-    
+
     --muted: 173 30% 25%;
     --muted-foreground: 173 15% 65%;
-    
+
     --accent: 0 84% 60%;
     --accent-foreground: 0 0% 98%;
-    
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    
+
     --border: 173 30% 30%;
     --input: 173 30% 25%;
     --ring: 43 96% 56%;
-    
+
     --radius: 1rem;
-    
+
     /* Custom colors */
     --gold: 43 96% 56%;
     --gold-dark: 43 80% 45%;
@@ -46,7 +46,7 @@
     --electric-blue: 207 90% 54%;
     --purple: 270 60% 58%;
     --neon-red: 0 84% 60%;
-    
+
     /* Sidebar */
     --sidebar-background: 173 45% 12%;
     --sidebar-foreground: 0 0% 98%;
@@ -56,34 +56,34 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 173 30% 25%;
     --sidebar-ring: 43 96% 56%;
-    
+
     /* Shadows */
     --shadow-card: 0 4px 24px -4px hsla(173, 50%, 20%, 0.15);
     --shadow-gold: 0 0 30px hsl(43 93% 54% / 0.3);
   }
-  
+
   .dark {
     --background: 173 45% 8%;
     --foreground: 0 0% 98%;
-    
+
     --card: 173 40% 12%;
     --card-foreground: 0 0% 98%;
-    
+
     --popover: 173 40% 10%;
     --popover-foreground: 0 0% 98%;
-    
+
     --primary: 43 96% 56%;
     --primary-foreground: 173 45% 8%;
-    
+
     --secondary: 173 60% 45%;
     --secondary-foreground: 0 0% 98%;
-    
+
     --muted: 173 35% 18%;
     --muted-foreground: 173 20% 60%;
-    
+
     --accent: 0 84% 60%;
     --accent-foreground: 0 0% 98%;
-    
+
     --border: 173 30% 20%;
     --input: 173 35% 15%;
     --ring: 43 96% 56%;
@@ -94,7 +94,7 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     background: linear-gradient(135deg, hsl(173, 45%, 22%) 0%, hsl(173, 40%, 15%) 50%, hsl(173, 35%, 10%) 100%);
@@ -103,44 +103,45 @@
 }
 
 @layer components {
-  /* Light card style - matching reference */
+
+  /* Light card style removed/merged with glass */
   .card-light {
     @apply rounded-2xl;
-    background: linear-gradient(145deg, hsl(40, 30%, 98%) 0%, hsl(173, 15%, 95%) 100%);
-    box-shadow: 0 4px 24px -4px hsla(173, 50%, 20%, 0.12);
-    border: 1px solid hsla(173, 30%, 80%, 0.5);
-    color: hsl(173, 30%, 20%);
+    background: hsla(0, 0%, 100%, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsla(0, 0%, 100%, 0.1);
+    color: hsl(0, 0%, 98%);
   }
-  
+
   /* Glass card effect */
   .glass-card {
     @apply rounded-2xl border;
-    background: hsla(40, 30%, 98%, 0.95);
-    backdrop-filter: blur(20px);
-    border-color: hsla(173, 30%, 80%, 0.5);
-    box-shadow: 0 4px 24px -4px hsla(173, 50%, 20%, 0.12);
-    color: hsl(173, 30%, 20%);
+    background: linear-gradient(180deg, hsla(0, 0%, 100%, 0.07) 0%, hsla(0, 0%, 100%, 0.03) 100%);
+    backdrop-filter: blur(16px);
+    border-color: hsla(0, 0%, 100%, 0.1);
+    box-shadow: 0 4px 24px -4px hsla(0, 0%, 0%, 0.2);
+    color: hsl(0, 0%, 98%);
   }
-  
-  /* Card text colors for light backgrounds */
+
+  /* Card text colors for dark backgrounds */
   .card-title {
-    color: hsl(173, 35%, 18%);
+    color: hsl(0, 0%, 98%);
   }
-  
+
   .card-text {
-    color: hsl(173, 20%, 35%);
+    color: hsla(0, 0%, 98%, 0.9);
   }
-  
+
   .card-muted {
-    color: hsl(173, 15%, 50%);
+    color: hsla(0, 0%, 98%, 0.6);
   }
-  
+
   /* Glass panel for sidebars */
   .glass-panel {
     background: linear-gradient(180deg, hsla(173, 40%, 18%, 0.95) 0%, hsla(173, 45%, 12%, 0.98) 100%);
     backdrop-filter: blur(24px);
   }
-  
+
   /* Sidebar item active state */
   .sidebar-item-active {
     @apply rounded-xl;
@@ -148,93 +149,103 @@
     color: hsl(173, 45%, 12%);
     box-shadow: 0 4px 16px -4px hsla(43, 96%, 56%, 0.4);
   }
-  
+
   /* Gold glow effect */
   .gold-glow {
     box-shadow: 0 0 20px -4px hsla(43, 96%, 56%, 0.3);
   }
-  
+
   /* Teal glow */
   .teal-glow {
     box-shadow: 0 0 20px -4px hsla(173, 60%, 45%, 0.4);
   }
-  
+
   /* Blue glow */
   .blue-glow {
     box-shadow: 0 0 24px -4px hsla(207, 90%, 54%, 0.4);
   }
-  
+
   /* Text gradients */
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(43, 96%, 56%) 0%, hsl(43, 80%, 45%) 100%);
   }
-  
+
   .text-gradient-teal {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(173, 60%, 45%) 0%, hsl(173, 50%, 35%) 100%);
   }
-  
+
   /* Pro banner gradient */
   .pro-banner {
-    background: linear-gradient(135deg, hsl(173, 30%, 96%) 0%, hsl(43, 40%, 95%) 50%, hsl(173, 25%, 94%) 100%);
+    background: linear-gradient(135deg, hsl(45, 20%, 95%) 0%, hsl(45, 20%, 92%) 50%, hsl(45, 20%, 90%) 100%);
     border: 1px solid hsla(43, 50%, 70%, 0.3);
   }
-  
+
   /* Snippet card overlay */
   .snippet-overlay {
     background: linear-gradient(180deg, transparent 0%, hsla(173, 45%, 10%, 0.9) 100%);
   }
-  
+
   /* Pulsing SOS button */
   .pulse-red {
     animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  
+
   @keyframes pulse-red {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 0 0 hsla(0, 84%, 60%, 0.4);
     }
+
     50% {
       box-shadow: 0 0 0 12px hsla(0, 84%, 60%, 0);
     }
   }
-  
+
   /* Floating animation */
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
-  
+
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0);
     }
+
     50% {
       transform: translateY(-10px);
     }
   }
-  
+
   /* Blob animation */
   .animate-blob {
     animation: blob 7s infinite;
   }
-  
+
   @keyframes blob {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translate(0, 0) scale(1);
     }
+
     33% {
       transform: translate(30px, -50px) scale(1.1);
     }
+
     66% {
       transform: translate(-20px, 20px) scale(0.9);
     }
   }
-  
+
   .animation-delay-2000 {
     animation-delay: 2s;
   }
-  
+
   .animation-delay-4000 {
     animation-delay: 4s;
   }

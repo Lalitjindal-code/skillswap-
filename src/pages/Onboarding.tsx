@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Coins, 
-  ArrowRight, 
-  ArrowLeft, 
-  BookOpen, 
-  GraduationCap, 
-  CheckCircle2, 
+import {
+  Coins,
+  ArrowRight,
+  ArrowLeft,
+  BookOpen,
+  GraduationCap,
+  CheckCircle2,
   Sparkles,
   X,
   Plus
@@ -56,16 +56,45 @@ export default function Onboarding() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
   const [animatingCoins, setAnimatingCoins] = useState(false);
-  
+  const [dynamicQuestions, setDynamicQuestions] = useState<any[]>([]);
+
   const { addSkill, verifySkill, updateCoins } = useGlobal();
   const navigate = useNavigate();
 
+  const mockQuizDatabase: Record<string, any[]> = {
+    'python': [
+      { question: "What is a Tuple?", options: ["Immutable sequence", "Mutable array", "Hash map", "A loop"], correct: 0 },
+      { question: "How do you define a function?", options: ["func MyFunc", "def my_func():", "function myFunc", "void myFunc"], correct: 1 },
+      { question: "What acts as a constructor?", options: ["__start__", "init()", "__init__", "constructor"], correct: 2 },
+    ],
+    'react': [
+      { question: "What does useState return?", options: ["Value only", "Value and Setter", "Object", "Promise"], correct: 1 },
+      { question: "What is a pure component?", options: ["Renders same output for same props", "Has no state", "Uses classes", "None of above"], correct: 0 },
+      { question: "useEffect runs when?", options: ["Only on mount", "On every render", "Based on dependency array", "On click"], correct: 2 },
+    ],
+    'default': [
+      { question: "What is the best way to learn?", options: ["Reading only", "Teaching others", "Watching videos", "Sleeping"], correct: 1 },
+      { question: "What is peer learning?", options: ["Learning alone", "Learning with instructors", "Learning with equals", "None"], correct: 2 },
+      { question: "How to stay consistent?", options: ["Motivation", "Discipline & Habits", "Luck", "Coffee"], correct: 1 },
+    ]
+  };
+
   const handleAddSkill = (type: 'teach' | 'learn') => {
     if (!skillInput.trim()) return;
-    
+
     if (type === 'teach') {
-      setTeachSkills([...teachSkills, skillInput]);
+      const newSkills = [...teachSkills, skillInput];
+      setTeachSkills(newSkills);
       addSkill(skillInput, 'teach');
+
+      // Select questions based on the first added skill
+      const skillKey = skillInput.toLowerCase();
+      if (mockQuizDatabase[skillKey]) {
+        setDynamicQuestions(mockQuizDatabase[skillKey]);
+      } else {
+        setDynamicQuestions(mockQuizDatabase['default']);
+      }
+
     } else {
       setLearnSkills([...learnSkills, skillInput]);
       addSkill(skillInput, 'learn');
@@ -100,7 +129,7 @@ export default function Onboarding() {
   const handleFinish = async () => {
     setAnimatingCoins(true);
     await new Promise(resolve => setTimeout(resolve, 600));
-    updateCoins(5);
+    updateCoins(3); // Updated to 3 coins
     await new Promise(resolve => setTimeout(resolve, 1000));
     navigate('/dashboard');
   };
@@ -244,18 +273,17 @@ export default function Onboarding() {
 
             {!verified ? (
               <div className="space-y-6">
-                {quizQuestions.map((q, qi) => (
+                {(dynamicQuestions.length > 0 ? dynamicQuestions : quizQuestions).map((q, qi) => (
                   <div key={qi} className="glass-card p-5 rounded-xl space-y-3">
                     <p className="font-medium">{qi + 1}. {q.question}</p>
                     <div className="grid grid-cols-1 gap-2">
-                      {q.options.map((option, oi) => (
+                      {q.options.map((option: string, oi: number) => (
                         <label
                           key={oi}
-                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                            quizAnswers[qi] === oi
-                              ? 'bg-primary/20 border-primary'
-                              : 'bg-muted/30 hover:bg-muted/50'
-                          } border border-white/10`}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${quizAnswers[qi] === oi
+                            ? 'bg-primary/20 border-primary'
+                            : 'bg-muted/30 hover:bg-muted/50'
+                            } border border-white/10`}
                         >
                           <input
                             type="radio"
@@ -353,7 +381,7 @@ export default function Onboarding() {
                     animate={animatingCoins ? { scale: [1, 1.3, 1] } : {}}
                     className="text-5xl font-bold text-gradient-gold"
                   >
-                    {animatingCoins ? '5' : '0'} → 5
+                    {animatingCoins ? '3' : '0'} → 3
                   </motion.p>
                   <p className="text-muted-foreground">Time Coins</p>
                 </div>
@@ -385,13 +413,12 @@ export default function Onboarding() {
           {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                s === step
-                  ? 'w-8 bg-primary'
-                  : s < step
+              className={`h-2 rounded-full transition-all duration-300 ${s === step
+                ? 'w-8 bg-primary'
+                : s < step
                   ? 'w-2 bg-primary/50'
                   : 'w-2 bg-muted'
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -413,14 +440,14 @@ export default function Onboarding() {
                 <ArrowLeft className="w-5 h-5" />
                 Back
               </button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setStep(s => Math.min(4, s + 1))}
-                disabled={(step === 1 && teachSkills.length === 0) || 
-                         (step === 2 && learnSkills.length === 0) ||
-                         (step === 3 && !verified)}
+                disabled={(step === 1 && teachSkills.length === 0) ||
+                  (step === 2 && learnSkills.length === 0) ||
+                  (step === 3 && !verified)}
                 className="flex items-center gap-2 px-6 py-2 rounded-xl bg-primary text-primary-foreground font-medium disabled:opacity-50"
               >
                 {step === 3 && !verified ? 'Complete Quiz' : 'Continue'}

@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform, type Variants } from 'framer-motion';
 import { Eye, Map, FileText, Zap, Users, Check, ArrowRight, Sparkles } from 'lucide-react';
+import { useRef } from 'react';
+import { ThreeDCoin } from '@/components/ThreeDCoin';
+import { SkillCube } from '@/components/SkillCube';
 
 const features = [
   {
@@ -54,34 +57,56 @@ const stats = [
   { value: '2K+', label: 'Active Mentors' },
 ];
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
 export default function Landing() {
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
+
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-teal/10">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center">
-              <span className="text-xl font-bold text-white">S</span>
-            </div>
+            <img src="/logo.png" alt="SkillSwap" className="w-10 h-10 rounded-xl object-contain" />
             <span className="text-xl font-bold tracking-tight text-foreground">
               Skill<span className="text-primary">Swap</span>
             </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors hover:scale-105 transform duration-200">
               Features
             </a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors hover:scale-105 transform duration-200">
               Pricing
             </a>
-            <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors hover:scale-105 transform duration-200">
               Login
             </Link>
             <Link
               to="/login"
-              className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+              className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all hover:shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:scale-105 active:scale-95"
             >
               Get Started
             </Link>
@@ -90,83 +115,86 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16">
+      <section className="relative min-h-screen flex items-center justify-center pt-32">
         {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal/20 rounded-full blur-3xl animate-blob" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div style={{ y: y1 }} className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal/20 rounded-full blur-3xl animate-blob" />
+          <motion.div style={{ y: y2 }} className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-blob animation-delay-2000" />
           <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-secondary/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
         </div>
 
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="text-left max-w-2xl"
           >
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring' }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6 cursor-default border border-primary/20"
             >
-              <Zap className="w-4 h-4 text-primary" />
+              <Zap className="w-4 h-4 text-primary animate-pulse" />
               <span className="text-sm card-text">Join 10,000+ learners worldwide</span>
             </motion.div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-foreground">
+            <motion.h1
+              variants={itemVariants}
+              className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-foreground leading-tight"
+            >
               Your Time is the{' '}
-              <span className="text-gradient-gold">New Currency</span>
-            </h1>
+              <motion.span
+                className="text-gradient-gold inline-block"
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                style={{ backgroundSize: "200% auto" }}
+              >
+                New Currency
+              </motion.span>
+            </motion.h1>
 
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            <motion.p variants={itemVariants} className="text-xl text-muted-foreground mb-10">
               Exchange knowledge, not money. Teach what you know, learn what you need.
               Welcome to the future of peer-to-peer education.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/login"
-                className="px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all gold-glow flex items-center justify-center gap-2"
+                className="px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all gold-glow flex items-center justify-center gap-2 hover:scale-105 active:scale-95 duration-300"
               >
                 Start Trading Skills
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <a
                 href="#features"
-                className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-secondary/10 transition-colors card-title"
+                className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-secondary/10 transition-all card-title hover:scale-105 active:scale-95 duration-300"
               >
                 Watch Demo
               </a>
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* 3D Illustration Placeholder */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="mt-16 relative"
+            transition={{ duration: 1, delay: 0.5 }}
+            className="hidden md:flex justify-end w-full max-w-sm"
           >
-            <div className="w-full max-w-3xl mx-auto aspect-video rounded-2xl glass-card overflow-hidden border border-primary/20 gold-glow">
-              <div className="absolute inset-0 bg-gradient-to-br from-teal/10 to-primary/10" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-secondary to-teal flex items-center justify-center animate-float">
-                    <Sparkles className="w-16 h-16 text-white" />
-                  </div>
-                  <p className="card-muted">Interactive Platform Preview</p>
-                </div>
-              </div>
-            </div>
+            <ThreeDCoin />
           </motion.div>
         </div>
       </section>
 
       {/* Stats Strip */}
-      <section className="py-12 glass-card mx-6 rounded-2xl -mt-8 relative z-20">
-        <div className="container mx-auto px-6">
+      <section className="py-12 glass-card mx-6 rounded-2xl mt-12 relative z-20 border border-white/10 overflow-hidden">
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+          animate={{ x: ['-100%', '100%'] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+        />
+        <div className="container mx-auto px-6 relative">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
               <motion.div
@@ -175,7 +203,8 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="text-center"
+                whileHover={{ scale: 1.1 }}
+                className="text-center cursor-default"
               >
                 <div className="text-3xl md:text-4xl font-bold text-gradient-gold">{stat.value}</div>
                 <div className="card-muted mt-1">{stat.label}</div>
@@ -188,19 +217,31 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="py-24">
         <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold tracking-tight mb-4 text-foreground">
-              Revolutionary Learning Features
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Discover innovative ways to learn and teach that make education accessible to everyone.
-            </p>
-          </motion.div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12 mb-16">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="text-left max-w-xl"
+            >
+              <h2 className="text-4xl font-bold tracking-tight mb-4 text-foreground">
+                Unlock the <span className="text-gradient-gold">Multimodel</span><br /> Learning Universe
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Explore a multidimensional approach to skills. From coding to design,
+                our platform connects every facet of your learning journey into one cohesive ecosystem.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="flex justify-center"
+            >
+              <SkillCube />
+            </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, i) => (
@@ -208,18 +249,18 @@ export default function Landing() {
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15 }}
+                transition={{ delay: i * 0.2 }}
                 viewport={{ once: true }}
-                className="glass-card p-8 hover:shadow-xl transition-all duration-300 group"
+                whileHover={{ y: -10 }}
+                className="glass-card p-8 hover:shadow-[0_0_30px_rgba(250,204,21,0.1)] transition-all duration-300 group border border-white/5 hover:border-primary/20"
               >
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${
-                    feature.color === 'purple'
-                      ? 'bg-purple/20 text-purple'
-                      : feature.color === 'teal'
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-6 ${feature.color === 'purple'
+                    ? 'bg-purple/20 text-purple'
+                    : feature.color === 'teal'
                       ? 'bg-secondary/20 text-secondary'
                       : 'bg-primary/20 text-primary'
-                  }`}
+                    }`}
                 >
                   <feature.icon className="w-7 h-7" />
                 </div>
@@ -232,8 +273,9 @@ export default function Landing() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24">
-        <div className="container mx-auto px-6">
+      <section id="pricing" className="py-24 relative">
+        <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="container mx-auto px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -252,19 +294,19 @@ export default function Landing() {
             {pricingPlans.map((plan, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15 }}
+                initial={{ opacity: 0, x: i === 1 ? 0 : i === 0 ? 50 : -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.15, type: "spring" }}
                 viewport={{ once: true }}
-                className={`glass-card p-8 ${
-                  plan.highlight
-                    ? 'border-primary gold-glow scale-105'
-                    : 'hover:shadow-xl'
-                } transition-all duration-300`}
+                whileHover={{ scale: 1.03 }}
+                className={`glass-card p-8 ${plan.highlight
+                  ? 'border-primary gold-glow scale-105 z-10'
+                  : 'hover:shadow-xl opacity-90 hover:opacity-100'
+                  } transition-all duration-300`}
               >
                 {plan.highlight && (
-                  <div className="text-xs font-semibold text-primary mb-4 uppercase tracking-wider">
-                    Most Popular
+                  <div className="text-xs font-semibold text-primary mb-4 uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" /> Most Popular
                   </div>
                 )}
                 <h3 className="text-2xl font-bold mb-2 card-title">{plan.name}</h3>
@@ -282,11 +324,10 @@ export default function Landing() {
                 </ul>
                 <Link
                   to="/login"
-                  className={`block w-full py-3 rounded-xl font-semibold text-center transition-colors ${
-                    plan.highlight
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'bg-secondary/10 hover:bg-secondary/20 card-title'
-                  }`}
+                  className={`block w-full py-3 rounded-xl font-semibold text-center transition-all ${plan.highlight
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25'
+                    : 'bg-secondary/10 hover:bg-secondary/20 card-title'
+                    }`}
                 >
                   Get Started
                 </Link>
@@ -303,17 +344,25 @@ export default function Landing() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="glass-card p-12 md:p-20 text-center rounded-3xl border-primary/20 gold-glow"
+            whileHover={{ scale: 1.01 }}
+            className="glass-card p-12 md:p-20 text-center rounded-3xl border-primary/20 gold-glow relative overflow-hidden"
           >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 card-title">
+            <motion.div
+              className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-blob"
+            />
+            <motion.div
+              className="absolute -bottom-20 -left-20 w-64 h-64 bg-teal/10 rounded-full blur-3xl animate-blob animation-delay-2000"
+            />
+
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 card-title relative z-10">
               Ready to Start Trading Skills?
             </h2>
-            <p className="text-xl card-muted mb-10 max-w-2xl mx-auto">
+            <p className="text-xl card-muted mb-10 max-w-2xl mx-auto relative z-10">
               Join thousands of learners and mentors in the most innovative education platform.
             </p>
             <Link
               to="/login"
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all gold-glow"
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all gold-glow hover:scale-105 active:scale-95 relative z-10"
             >
               <Users className="w-5 h-5" />
               Join the Community
@@ -327,9 +376,7 @@ export default function Landing() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center">
-                <span className="text-sm font-bold text-white">S</span>
-              </div>
+              <img src="/logo.png" alt="SkillSwap" className="w-8 h-8 rounded-lg object-contain" />
               <span className="font-semibold text-foreground">SkillSwap</span>
             </div>
             <p className="text-muted-foreground text-sm">

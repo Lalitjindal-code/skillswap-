@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Skill {
   name: string;
@@ -8,6 +10,7 @@ interface Skill {
 }
 
 interface User {
+  id?: string;
   name: string;
   email: string;
   avatar: string;
@@ -33,7 +36,10 @@ interface GlobalContextType {
   user: User;
   notifications: Notification[];
   setUser: React.Dispatch<React.SetStateAction<User>>;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
   updateCoins: (amount: number) => void;
   addSkill: (skill: string, type: 'teach' | 'learn') => void;
   verifySkill: (skillName: string) => void;
@@ -44,9 +50,9 @@ const defaultUser: User = {
   name: '',
   email: '',
   avatar: '',
-  coins: 0,
-  level: 3,
-  levelTitle: 'Apprentice',
+  coins: 3, // Default starting coins
+  level: 0,
+  levelTitle: 'Novice',
   verifiedSkills: [],
   learningSkills: [],
   isLoggedIn: false,
@@ -62,22 +68,6 @@ const defaultNotifications: Notification[] = [
     time: '2m ago',
     read: false,
   },
-  {
-    id: '2',
-    title: 'New Badge Earned!',
-    message: 'You earned the React Verified badge',
-    type: 'success',
-    time: '1h ago',
-    read: false,
-  },
-  {
-    id: '3',
-    title: 'Group Pool Funded',
-    message: 'Machine Learning pool reached its goal',
-    type: 'success',
-    time: '3h ago',
-    read: true,
-  },
 ];
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -86,14 +76,93 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User>(defaultUser);
   const [notifications, setNotifications] = useState<Notification[]>(defaultNotifications);
 
-  const login = (email: string, _password: string) => {
-    setUser(prev => ({
-      ...prev,
+  // Sync Auth State
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchProfile(session.user.id, session.user.email);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchProfile(session.user.id, session.user.email);
+      } else {
+        setUser(defaultUser);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string, email?: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (data) {
+        setUser(prev => ({
+          ...prev,
+          id: userId,
+          isLoggedIn: true,
+          email: data.email || email || '',
+          name: data.name || email?.split('@')[0] || 'User',
+          avatar: data.avatar_text || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+          coins: data.coins || 3,
+          level: data.level || 0,
+          // Keep other fields default/local for now as DB schema expands
+        }));
+      } else if (email) {
+        // Fallback if profile trigger failed or slow
+        setUser(prev => ({
+          ...prev,
+          id: userId,
+          isLoggedIn: true,
+          email: email,
+          name: email.split('@')[0],
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        }));
+      }
+    } catch (e) {
+      console.error("Error fetching profile:", e);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      name: email.split('@')[0],
-      isLoggedIn: true,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-    }));
+      password,
+    });
+    if (error) throw error;
+  };
+
+  const signup = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) throw error;
+    // Toast handled in UI
+  };
+
+  const loginWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      }
+    });
+    if (error) throw error;
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(defaultUser);
+    toast.success('Logged out successfully');
   };
 
   const updateCoins = (amount: number) => {
@@ -101,6 +170,12 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
       ...prev,
       coins: prev.coins + amount,
     }));
+    // TODO: Sync to DB
+    if (user.id) {
+      // Fire and forget update
+      const newBalance = user.coins + amount;
+      supabase.from('profiles').update({ coins: newBalance }).eq('id', user.id).then();
+    }
   };
 
   const addSkill = (skill: string, type: 'teach' | 'learn') => {
@@ -144,6 +219,9 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         notifications,
         setUser,
         login,
+        signup,
+        loginWithGoogle,
+        logout,
         updateCoins,
         addSkill,
         verifySkill,

@@ -1,45 +1,60 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, 
-  Lock, 
+import {
+  CheckCircle2,
+  Lock,
   ChevronRight,
   X,
   Clock,
   BookOpen,
-  Play
+  Play,
+  Search,
+  Sparkles
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageTransition, staggerContainer, staggerItem } from '@/components/PageTransition';
-
-const careerPath = [
-  { id: 1, name: 'HTML', status: 'completed', duration: '2 weeks', lessons: 12 },
-  { id: 2, name: 'CSS', status: 'completed', duration: '3 weeks', lessons: 18 },
-  { id: 3, name: 'JavaScript', status: 'completed', duration: '4 weeks', lessons: 24 },
-  { id: 4, name: 'React', status: 'active', duration: '6 weeks', lessons: 30 },
-  { id: 5, name: 'TypeScript', status: 'locked', duration: '3 weeks', lessons: 15 },
-  { id: 6, name: 'Node.js', status: 'locked', duration: '4 weeks', lessons: 20 },
-  { id: 7, name: 'Database', status: 'locked', duration: '3 weeks', lessons: 16 },
-  { id: 8, name: 'DevOps', status: 'locked', duration: '4 weeks', lessons: 18 },
-];
-
-const syllabus = [
-  { title: 'Introduction to React', duration: '45 min', completed: true },
-  { title: 'Components & Props', duration: '60 min', completed: true },
-  { title: 'State Management', duration: '90 min', completed: false },
-  { title: 'Hooks Deep Dive', duration: '120 min', completed: false },
-  { title: 'Context API', duration: '60 min', completed: false },
-  { title: 'React Router', duration: '45 min', completed: false },
-];
+import { generateCareerRoadmap, CareerPathNode, SyllabusItem } from '@/services/gemini';
+import { toast } from 'sonner';
 
 export default function CareerGPS() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedNode, setSelectedNode] = useState<typeof careerPath[0] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [topic, setTopic] = useState('');
+  const [path, setPath] = useState<CareerPathNode[]>([]);
+  const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
+  const [selectedNode, setSelectedNode] = useState<CareerPathNode | null>(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!topic.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const data = await generateCareerRoadmap(topic);
+      setPath(data.path);
+      setSyllabus(data.syllabus);
+      setHasGenerated(true);
+      toast.success(`Roadmap for ${topic} generated!`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to generate roadmap. Please checks your API key.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const [showTutors, setShowTutors] = useState(false);
+
+  // Reset tutor view when node changes
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    setShowTutors(false);
+  }, [selectedNode]);
+
+  const mockTutors = [
+    { name: "Sarah Chen", role: "Senior Python Dev", rate: "₹800/hr", users: 120, img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
+    { name: "Amit Patel", role: "Data Scientist", rate: "₹600/hr", users: 85, img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit" },
+    { name: "Jessica Lee", role: "Full Stack AI", rate: "₹950/hr", users: 200, img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica" },
+  ];
 
   return (
     <DashboardLayout>
@@ -47,8 +62,35 @@ export default function CareerGPS() {
         <div className="p-6">
           <div className="mb-8">
             <h1 className="text-2xl font-bold mb-2">AI Career GPS</h1>
-            <p className="text-muted-foreground">Your personalized learning roadmap</p>
+            <p className="text-muted-foreground">Your personalized learning roadmap powered by Gemini</p>
           </div>
+
+          <form onSubmit={handleGenerate} className="mb-8 flex gap-4">
+            <div className="relative flex-1 max-w-lg">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="What do you want to learn? (e.g., Python, UI Design)"
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-card border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading || !topic.trim()}
+              className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Generate Roadmap
+                </>
+              )}
+            </button>
+          </form>
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -62,125 +104,92 @@ export default function CareerGPS() {
                 transition={{ duration: 1.5, repeat: Infinity }}
                 className="text-lg font-medium"
               >
-                AI is analyzing career paths...
+                Creating your custom roadmap for "{topic}"...
               </motion.p>
-              
-              {/* Skeleton Metro Map */}
-              <div className="w-full mt-10 overflow-x-auto">
-                <div className="flex items-center gap-4 min-w-max px-4">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="flex items-center">
-                      <motion.div
-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
-                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-                        className="w-16 h-16 rounded-full bg-muted"
-                      />
-                      {i < 7 && (
-                        <motion.div
-                          animate={{ opacity: [0.3, 0.6, 0.3] }}
-                          transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-                          className="w-20 h-2 bg-muted"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            </div>
+          ) : !hasGenerated ? (
+            <div className="text-center py-20 bg-card/30 rounded-2xl border-2 border-dashed border-white/10">
+              <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary opacity-50" />
+              <h3 className="text-xl font-semibold mb-2">Ready to Start?</h3>
+              <p className="text-muted-foreground">Enter a topic above to generate a tailored learning path.</p>
             </div>
           ) : (
-            <>
-              {/* Metro Map */}
-              <div className="glass-card rounded-2xl p-8 mb-8 overflow-x-auto">
-                <div className="flex items-center gap-0 min-w-max">
-                  {careerPath.map((node, i) => (
-                    <motion.div
-                      key={node.id}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex items-center"
-                    >
-                      {/* Node */}
-                      <motion.button
-                        whileHover={node.status !== 'locked' ? { scale: 1.1 } : {}}
-                        whileTap={node.status !== 'locked' ? { scale: 0.95 } : {}}
-                        onClick={() => node.status === 'active' && setSelectedNode(node)}
-                        className={`relative flex flex-col items-center ${
-                          node.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'
-                        }`}
-                      >
-                        {/* Glow ring for active */}
-                        {node.status === 'active' && (
-                          <motion.div
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.2, 0.5] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="absolute w-20 h-20 rounded-full bg-primary/30"
-                          />
-                        )}
-                        
-                        <div
-                          className={`relative w-16 h-16 rounded-full flex items-center justify-center z-10 ${
-                            node.status === 'completed'
-                              ? 'bg-green-500 text-white'
-                              : node.status === 'active'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted/50 text-muted-foreground'
-                          }`}
-                        >
-                          {node.status === 'completed' ? (
-                            <CheckCircle2 className="w-8 h-8" />
-                          ) : node.status === 'locked' ? (
-                            <Lock className="w-6 h-6" />
-                          ) : (
-                            <span className="text-lg font-bold">{node.id}</span>
-                          )}
-                        </div>
-                        
-                        <span className={`mt-3 text-sm font-medium ${
-                          node.status === 'locked' ? 'text-muted-foreground' : ''
-                        }`}>
-                          {node.name}
-                        </span>
-                      </motion.button>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Vertical Metro Map */}
+              <div className="lg:col-span-2">
+                <div className="glass-card rounded-2xl p-8 mb-8 relative min-h-[500px]">
+                  {/* Vertical Line Background */}
+                  <div className="absolute left-[3.25rem] top-12 bottom-12 w-1 bg-white/5 rounded-full" />
 
-                      {/* Connection Line */}
-                      {i < careerPath.length - 1 && (
-                        <div
-                          className={`w-20 h-1 mx-2 rounded-full ${
-                            careerPath[i + 1].status === 'completed' || node.status === 'completed'
-                              ? 'bg-green-500'
-                              : node.status === 'active'
-                              ? 'bg-gradient-to-r from-primary to-muted'
-                              : 'bg-muted/30'
-                          }`}
-                        />
-                      )}
-                    </motion.div>
-                  ))}
+                  <div className="flex flex-col gap-0">
+                    {path.map((node, i) => (
+                      <motion.div
+                        key={node.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="relative flex items-start group min-w-0" // min-w-0 fixes flex child overflow
+                      >
+                        {/* Connection Line Fragment (Active) */}
+                        {i < path.length - 1 && (path[i + 1].status === 'completed' || node.status === 'completed') && (
+                          <div className="absolute left-[3.25rem] top-16 bottom-[-3rem] w-1 bg-green-500 z-0" />
+                        )}
+                        {i < path.length - 1 && node.status === 'active' && (
+                          <div className="absolute left-[3.25rem] top-16 bottom-[-3rem] w-1 bg-gradient-to-b from-primary to-white/5 z-0" />
+                        )}
+
+                        <motion.button
+                          onClick={() => setSelectedNode(node)}
+                          className={`relative z-10 flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center border-4 border-background transition-all duration-300 ${node.status === 'completed' ? 'bg-green-500 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)]' :
+                            node.status === 'active' ? 'bg-primary text-primary-foreground shadow-[0_0_30px_rgba(250,204,21,0.4)] scale-110' :
+                              'bg-muted text-muted-foreground border-white/5'
+                            }`}
+                        >
+                          {node.status === 'completed' ? <CheckCircle2 className="w-6 h-6" /> :
+                            node.status === 'locked' ? <Lock className="w-5 h-5" /> :
+                              <span className="font-bold">{node.id}</span>
+                          }
+                        </motion.button>
+
+                        <div className="ml-6 pt-2 pb-12 w-full min-w-0">
+                          <div
+                            onClick={() => setSelectedNode(node)}
+                            className={`p-5 rounded-xl border transition-all duration-300 cursor-pointer ${node.status === 'active' ? 'bg-white/5 border-primary/30' :
+                              'bg-transparent border-transparent hover:bg-white/5'
+                              }`}
+                          >
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
+                              <h3 className={`text-lg font-bold break-words pr-2 ${node.status === 'active' ? 'text-primary' : ''}`}>{node.name}</h3>
+                              <span className="flex-shrink-0 text-xs font-mono text-muted-foreground bg-white/5 px-2 py-1 rounded whitespace-nowrap">{node.duration}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground break-words">{node.description || `Master the core concepts of ${node.name}`}</p>
+
+                            {node.status === 'active' && (
+                              <div className="mt-4 flex gap-2">
+                                <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded flex items-center gap-1">
+                                  <BookOpen className="w-3 h-3" /> {node.lessons} Lessons
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Stats */}
-              <motion.div
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-              >
-                <motion.div variants={staggerItem} className="glass-card rounded-xl p-6">
-                  <p className="text-muted-foreground text-sm mb-1">Completed</p>
-                  <p className="text-3xl font-bold text-green-500">3 Skills</p>
+              {/* Sidebar Stats */}
+              <div className="lg:col-span-1 space-y-4">
+                <motion.div variants={staggerItem} className="glass-card rounded-xl p-6 sticky top-6">
+                  <p className="text-muted-foreground text-sm mb-1">Total Milestones</p>
+                  <p className="text-3xl font-bold text-primary">{path.length}</p>
+                  <div className="h-px bg-white/10 my-4" />
+                  <p className="text-muted-foreground text-sm mb-1">Estimated Time</p>
+                  <p className="text-3xl font-bold">3 Months</p>
                 </motion.div>
-                <motion.div variants={staggerItem} className="glass-card rounded-xl p-6">
-                  <p className="text-muted-foreground text-sm mb-1">In Progress</p>
-                  <p className="text-3xl font-bold text-primary">React</p>
-                </motion.div>
-                <motion.div variants={staggerItem} className="glass-card rounded-xl p-6">
-                  <p className="text-muted-foreground text-sm mb-1">Est. Completion</p>
-                  <p className="text-3xl font-bold">6 Months</p>
-                </motion.div>
-              </motion.div>
-            </>
+              </div>
+            </div>
           )}
 
           {/* Side Sheet */}
@@ -192,28 +201,28 @@ export default function CareerGPS() {
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex justify-end"
               >
-                <div 
+                <div
                   className="absolute inset-0 bg-background/60 backdrop-blur-sm"
                   onClick={() => setSelectedNode(null)}
                 />
-                
+
                 <motion.div
                   initial={{ x: '100%' }}
                   animate={{ x: 0 }}
                   exit={{ x: '100%' }}
                   transition={{ type: 'spring', damping: 25 }}
-                  className="relative w-full max-w-md glass-panel h-full p-6 overflow-y-auto"
+                  className="relative w-full max-w-md glass-panel h-full p-6 overflow-y-auto border-l border-white/10 shadow-2xl"
                 >
                   <button
                     onClick={() => setSelectedNode(null)}
-                    className="absolute top-4 right-4 p-2 rounded-lg hover:bg-muted/50"
+                    className="absolute top-4 right-4 p-2 rounded-lg hover:bg-muted/50 z-20"
                   >
                     <X className="w-5 h-5" />
                   </button>
 
-                  <div className="mb-6">
-                    <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm">
-                      Currently Learning
+                  <div className="mb-6 relative">
+                    <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-bold">
+                      Milestone {selectedNode.id}
                     </span>
                     <h2 className="text-2xl font-bold mt-3">{selectedNode.name}</h2>
                     <div className="flex items-center gap-4 mt-2 text-muted-foreground">
@@ -228,44 +237,91 @@ export default function CareerGPS() {
                     </div>
                   </div>
 
-                  <h3 className="font-semibold mb-4">Syllabus</h3>
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                    className="space-y-3"
-                  >
-                    {syllabus.map((item, i) => (
+                  {!showTutors ? (
+                    <>
+                      <h3 className="font-semibold mb-4 text-lg">Module Syllabus</h3>
                       <motion.div
-                        key={i}
-                        variants={staggerItem}
-                        className={`p-4 rounded-xl flex items-center justify-between ${
-                          item.completed ? 'bg-green-500/10' : 'bg-muted/30'
-                        }`}
+                        variants={staggerContainer}
+                        initial="initial"
+                        animate="animate"
+                        className="space-y-3 mb-8"
                       >
-                        <div className="flex items-center gap-3">
-                          {item.completed ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <Play className="w-5 h-5 text-primary" />
-                          )}
-                          <div>
-                            <p className="font-medium">{item.title}</p>
-                            <p className="text-sm text-muted-foreground">{item.duration}</p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        {syllabus.map((item, i) => (
+                          <motion.div
+                            key={i}
+                            variants={staggerItem}
+                            className={`p-4 rounded-xl flex items-center justify-between ${item.completed ? 'bg-green-500/10 border border-green-500/30' : 'bg-white/5 border border-white/5'
+                              }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {item.completed ? (
+                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                              ) : (
+                                <Play className="w-5 h-5 text-primary" />
+                              )}
+                              <div>
+                                <p className="font-medium">{item.title}</p>
+                                <p className="text-sm text-muted-foreground">{item.duration}</p>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          </motion.div>
+                        ))}
                       </motion.div>
-                    ))}
-                  </motion.div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full mt-6 py-4 rounded-xl bg-primary text-primary-foreground font-semibold"
-                  >
-                    Continue Learning
-                  </motion.button>
+                      <div className="mt-auto">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowTutors(true)}
+                          className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg shadow-lg shadow-primary/20"
+                        >
+                          Start This Module
+                        </motion.button>
+                        <p className="text-center text-xs text-muted-foreground mt-3">
+                          Starting will match you with expert mentors
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <div className="flex items-center gap-2 mb-6 text-green-400">
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span className="font-medium">Module Started!</span>
+                      </div>
+
+                      <h3 className="text-xl font-bold mb-2">Recommended Tutors</h3>
+                      <p className="text-muted-foreground text-sm mb-6">Based on your learning style and this topic.</p>
+
+                      <div className="space-y-4">
+                        {mockTutors.map((tutor, i) => (
+                          <div key={i} className="glass-card p-4 rounded-xl border border-white/10 hover:border-primary/50 transition-colors flex gap-4 items-center">
+                            <img src={tutor.img} alt={tutor.name} className="w-12 h-12 rounded-full bg-white/10" />
+                            <div className="flex-1">
+                              <h4 className="font-bold">{tutor.name}</h4>
+                              <p className="text-xs text-muted-foreground">{tutor.role}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-primary">{tutor.rate}</p>
+                              <button className="text-xs px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg mt-1 transition-colors">
+                                Book
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setShowTutors(false)}
+                        className="w-full mt-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-medium"
+                      >
+                        Back to Syllabus
+                      </button>
+                    </motion.div>
+                  )}
                 </motion.div>
               </motion.div>
             )}

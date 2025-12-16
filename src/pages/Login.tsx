@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, User } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
 import { PageTransition } from '@/components/PageTransition';
+import { toast } from 'sonner';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,17 +12,38 @@ export default function Login() {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
-  const { login } = useGlobal();
+  const { login, signup, loginWithGoogle } = useGlobal();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    login(email, password);
-    navigate(isSignup ? '/onboarding' : '/dashboard');
+
+    try {
+      if (isSignup) {
+        await signup(email, password);
+        toast.success('Account created! Please check your email.');
+        // Don't navigate immediately on signup if email confirmation is required, 
+        // but for now we can redirect or stay here. 
+        // Supabase default usually requires email update.
+      } else {
+        await login(email, password);
+        toast.success('Welcome back!');
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Authentication failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error: any) {
+      toast.error(error.message || 'Google login failed');
+    }
   };
 
   const toggleMode = () => {
@@ -72,17 +94,11 @@ export default function Login() {
               transition={{ duration: 0.4, ease: 'easeInOut' }}
               className="w-full"
             >
-              <div className="glass-card p-8 rounded-2xl text-gray-700 backdrop-blur-xl">
+              <div className="glass-card p-8 rounded-2xl text-black backdrop-blur-xl">
                 {/* Logo */}
                 <Link to="/" className="flex items-center justify-center gap-3 mb-8">
-                  <motion.div 
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center"
-                  >
-                    <span className="text-2xl font-bold text-white">S</span>
-                  </motion.div>
-                  <span className="text-2xl font-bold tracking-tight text-gray-800">
+                  <img src="/logo.png" alt="SkillSwap" className="w-12 h-12 rounded-xl object-contain" />
+                  <span className="text-2xl font-bold tracking-tight text-white">
                     Skill<span className="text-primary">Swap</span>
                   </span>
                 </Link>
@@ -92,7 +108,7 @@ export default function Login() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  <h1 className="text-2xl font-bold text-center mb-2">
+                  <h1 className="text-2xl font-bold text-center mb-2 text-white">
                     {isSignup ? 'Create Account' : 'Welcome Back'}
                   </h1>
                   <p className="text-muted-foreground text-center mb-8">
@@ -102,13 +118,13 @@ export default function Login() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {isSignup && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-2"
                     >
-                      <label className="text-sm font-medium text-foreground">Full Name</label>
+                      <label className="text-sm font-medium text-foreground text-white">Full Name</label>
                       <div className="relative group">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input
@@ -117,14 +133,14 @@ export default function Login() {
                           onChange={(e) => setName(e.target.value)}
                           placeholder="John Doe"
                           required={isSignup}
-                          className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+                          className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
                         />
                       </div>
                     </motion.div>
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Email</label>
+                    <label className="text-sm font-medium text-foreground text-white">Email</label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <input
@@ -133,13 +149,13 @@ export default function Login() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
                         required
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Password</label>
+                    <label className="text-sm font-medium text-foreground text-white">Password</label>
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <input
@@ -148,7 +164,7 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         required
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
                       />
                     </div>
                   </div>
@@ -173,10 +189,10 @@ export default function Login() {
                     className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all disabled:opacity-70 gold-glow"
                   >
                     {isLoading ? (
-                      <motion.div 
+                      <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full" 
+                        className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
                       />
                     ) : (
                       <>
@@ -192,31 +208,28 @@ export default function Login() {
                     <div className="w-full border-t border-white/10" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-card px-4 text-sm text-muted-foreground">or continue with</span>
+                    <span className="bg-card px-4 text-sm text-muted-foreground rounded-full border border-white/5">or continue with</span>
                   </div>
                 </div>
 
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    login('google@user.com', '');
-                    navigate(isSignup ? '/onboarding' : '/dashboard');
-                  }}
-                  className="w-full py-3 rounded-xl glass-card border border-white/10 font-medium flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
+                  onClick={handleGoogleLogin}
+                  className="w-full py-3 rounded-xl glass-card border border-white/10 font-medium flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors text-white"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                   Continue with Google
                 </motion.button>
 
                 <p className="text-center text-muted-foreground mt-8 text-sm">
                   {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-                  <button 
+                  <button
                     onClick={toggleMode}
                     className="text-primary hover:underline font-medium"
                   >
