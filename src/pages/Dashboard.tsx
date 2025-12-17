@@ -180,11 +180,11 @@ export default function Dashboard() {
                       <h3 className="font-bold card-title">Learning Velocity</h3>
                     </div>
                     <div className="h-56 flex items-end justify-between gap-2 px-2 border-b border-white/5 pb-2">
-                      {[30, 45, 25, 60, 75, 50, 80].map((h, i) => (
+                      {[3, 4.5, 2.5, 6, 7.5, 5, 8].map((h, i) => (
                         <motion.div
                           key={i}
                           initial={{ height: 0 }}
-                          animate={{ height: `${h}%` }}
+                          animate={{ height: `${(h / 8) * 100}%` }}
                           transition={{ delay: i * 0.1, duration: 0.5 }}
                           className="w-full bg-gradient-to-t from-primary/20 to-primary/60 rounded-t-sm relative group"
                         >

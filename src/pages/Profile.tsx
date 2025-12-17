@@ -1,338 +1,296 @@
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
+  Download,
+  Share2,
+  MapPin,
+  Calendar,
+  Award,
   Star,
-  Shield,
+  Zap,
+  ShieldCheck,
+  Edit2,
   ExternalLink,
-  Trophy,
-  Coins,
-  Clock,
-  Users,
-  ArrowRight,
-  Heart
+  Link as LinkIcon
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useGlobal } from '@/contexts/GlobalContext';
-
-const mockVerifiedSkills = [
-  { name: 'React', rating: 4.8, hash: '0x7f3a...b2c1', sessions: 24 },
-  { name: 'JavaScript', rating: 4.5, hash: '0x9d2e...f4a8', sessions: 18 },
-  { name: 'TypeScript', rating: 4.2, hash: '0x1c5b...e3d7', sessions: 12 },
-];
-
-const kindnessChain = [
-  { name: 'You', type: 'origin' },
-  { name: 'Amit', type: 'taught' },
-  { name: 'Sarah', type: 'taught' },
-  { name: 'Mike', type: 'taught' },
-  { name: 'Lisa', type: 'taught' },
-];
-
-const stats = [
-  { icon: Clock, label: 'Hours Taught', value: '48' },
-  { icon: Users, label: 'Students Helped', value: '32' },
-  { icon: Star, label: 'Avg Rating', value: '4.6' },
-  { icon: Coins, label: 'Coins Earned', value: '86' },
-];
+import { PageTransition } from '@/components/PageTransition';
+import { toast } from 'sonner';
 
 export default function Profile() {
   const { user } = useGlobal();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Generate a deterministic "hash" for a skill to simulate blockchain verification
+  const getSkillHash = (skillName: string) => {
+    let hash = 0;
+    for (let i = 0; i < skillName?.length; i++) {
+      hash = (hash << 5) - hash + skillName.charCodeAt(i);
+      hash |= 0;
+    }
+    return `0x${Math.abs(hash).toString(16).padEnd(40, '0').substring(0, 10)}...`;
+  };
+
+  const handleDownloadCV = async () => {
+    setIsDownloading(true);
+    toast.loading("Compiling Blockchain Verifications...", { id: "cv-download" });
+
+    // Simulate compilation delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Map verified skills to string format
+    const skillsList = user.verifiedSkills?.map(s => `- ${s.name} [Hash: ${s.hash || getSkillHash(s.name)}]`).join('\n') || "No verified skills yet.";
+
+    const cvContent = `
+SkillSync Verified Resume
+-------------------------
+Name: ${user.name}
+Email: ${user.email}
+Level: ${user.level} (${user.levelTitle})
+Member Since: 2024
+
+-------------------------
+VERIFIED SKILLS (Blockchain Secured)
+-------------------------
+${skillsList}
+
+-------------------------
+IMPACT STATS
+-------------------------
+Time Coins Earned: ${user.coins}
+Rating: 4.9/5
+
+Certified by SkillSync Protocol
+Values: Trust. Learn. Share.
+    `.trim();
+
+    try {
+      const blob = new Blob([cvContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${user.name.replace(/\s+/g, '_')}_SkillSync_CV.txt`);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.dismiss("cv-download");
+      toast.success("Verified CV Downloaded Successfully!");
+    } catch (err) {
+      console.error("Download failed", err);
+      toast.error("Failed to download CV");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Use verifiedSkills from context, or fallback if empty for UI demo
+  const displaySkills = user.verifiedSkills && user.verifiedSkills.length > 0
+    ? user.verifiedSkills
+    : [
+      { name: "React", hash: getSkillHash("React") },
+      { name: "TypeScript", hash: getSkillHash("TypeScript") },
+      { name: "UI/UX", hash: getSkillHash("UI/UX") }
+    ];
 
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 rounded-2xl text-black"
-        >
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            {/* Avatar with Ring */}
-            <div className="relative">
-              <div className={`w-32 h-32 rounded-full p-1 ${user.isPro
-                ? 'bg-gradient-to-br from-primary to-primary/60 gold-glow'
-                : 'bg-muted'
-                }`}>
-                <img
-                  src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email || 'default'}`}
-                  alt="Profile"
-                  className="w-full h-full rounded-full bg-card"
-                />
+    <PageTransition>
+      <div className="min-h-screen bg-background pt-24 pb-12 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+
+          {/* LEFT COLUMN: Sticky Profile Card */}
+          <div className="w-full md:w-[350px] shrink-0 md:sticky md:top-24 h-fit space-y-6">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="glass-card rounded-3xl overflow-hidden border border-white/10 relative group"
+            >
+              {/* Holographic Header Background */}
+              <div className="h-32 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 bg-repeat mix-blend-overlay"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40"></div>
               </div>
-              {user.isPro && (
-                <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <Trophy className="w-4 h-4 text-primary-foreground" />
+
+              {/* Avatar Container */}
+              <div className="px-6 relative">
+                <div className={`-mt-16 w-32 h-32 rounded-full p-1 ${user.level > 2 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : 'bg-gradient-to-br from-blue-400 to-blue-600'} shadow-xl`}>
+                  <img
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+                    alt={user.name}
+                    className="w-full h-full rounded-full bg-black/50 border-4 border-black/50 object-cover"
+                  />
+                  <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-md text-xs px-2 py-0.5 rounded-full border border-white/10 text-white flex items-center gap-1">
+                    lvl {user.level}
+                  </div>
                 </div>
-              )}
-            </div>
-
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                <h1 className="text-2xl font-bold">{user.name || 'Learner'}</h1>
-                {user.isPro && (
-                  <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
-                    PRO
-                  </span>
-                )}
               </div>
-              <p className="text-muted-foreground mb-4">{user.email || 'user@skillswap.com'}</p>
 
-              <div className="flex items-center justify-center md:justify-start gap-3">
-                <span className="px-4 py-2 rounded-xl bg-muted/50 text-sm flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-secondary" />
-                  Level {user.level} {user.levelTitle}
-                </span>
-                <span className="px-4 py-2 rounded-xl bg-primary/20 text-primary text-sm font-medium flex items-center gap-2">
-                  <Coins className="w-4 h-4" />
-                  {user.coins} Coins
-                </span>
+              {/* Identity Info */}
+              <div className="p-6 pt-4 text-center md:text-left">
+                <h1 className="text-2xl font-bold text-white mb-1">{user.name}</h1>
+                <p className="text-primary font-medium text-sm mb-4 flex items-center justify-center md:justify-start gap-2">
+                  <ShieldCheck className="w-4 h-4" />
+                  Full Stack Developer
+                </p>
+
+                <div className="text-sm text-muted-foreground space-y-2 mb-6">
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>Global Remote</span>
+                  </div>
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Member since 2024</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleDownloadCV}
+                    disabled={isDownloading}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary/80 to-purple/80 hover:from-primary hover:to-purple text-white font-medium shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all border border-white/10"
+                  >
+                    {isDownloading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                    Download Verified CV
+                  </motion.button>
+
+                  <div className="flex gap-3">
+                    <button className="flex-1 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-sm font-medium flex items-center justify-center gap-2">
+                      <Edit2 className="w-3.5 h-3.5" />
+                      Edit Profile
+                    </button>
+                    <button className="py-2.5 px-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-muted-foreground hover:text-white">
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <button className="px-6 py-3 rounded-xl glass-card hover:bg-muted/50 transition-colors font-medium">
-              Edit Profile
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
-        >
-          {stats.map((stat, i) => (
-            <div key={i} className="glass-card p-4 rounded-xl text-center">
-              <stat.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Verified CV */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card p-6 rounded-2xl"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-secondary" />
-              Verified Skills CV
-            </h2>
-            <button className="text-sm text-primary hover:underline flex items-center gap-1">
-              Export CV
-              <ExternalLink className="w-4 h-4" />
-            </button>
+            </motion.div>
           </div>
 
-          <div className="space-y-4">
-            {mockVerifiedSkills.map((skill, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-secondary" />
+          {/* RIGHT COLUMN: Content */}
+          <div className="flex-1 space-y-6">
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { label: "Hours Taught", value: "32h", icon: Zap, color: "text-yellow-400" },
+                { label: "Impact Score", value: "924", icon: Award, color: "text-purple-400" },
+                { label: "Rating", value: "4.9/5", icon: Star, color: "text-green-400" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="glass-card p-4 rounded-2xl flex items-center gap-4 hover:bg-white/5 transition-colors cursor-default"
+                >
+                  <div className={`w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center ${stat.color}`}>
+                    <stat.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">{skill.name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-primary fill-primary" />
-                        {skill.rating}
-                      </span>
-                      <span>•</span>
-                      <span>{skill.sessions} sessions</span>
-                    </div>
+                    <p className="text-2xl font-bold text-white">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</p>
                   </div>
-                </div>
-
-                <a
-                  href="#"
-                  className="flex items-center gap-2 text-sm text-secondary hover:underline"
-                >
-                  <span className="font-mono">{skill.hash}</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </motion.div>
-            ))}
-          </div>
-
-          {mockVerifiedSkills.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No verified skills yet. Complete the verification quiz to get started!</p>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Kindness Chain */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass-card p-6 rounded-2xl"
-        >
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Heart className="w-5 h-5 text-accent" />
-            Kindness Chain
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Your knowledge has rippled through the community. See how your teaching has created a chain of learning!
-          </p>
-
-          {/* Chain Visualization */}
-          <div className="flex items-center justify-center flex-wrap gap-2 py-6">
-            {kindnessChain.map((node, i) => (
-              <div key={i} className="flex items-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center ${i === 0
-                    ? 'bg-gradient-to-br from-primary to-primary/60 gold-glow'
-                    : 'bg-muted/50'
-                    }`}
-                >
-                  <span className={`font-semibold ${i === 0 ? 'text-primary-foreground' : ''}`}>
-                    {node.name.charAt(0)}
-                  </span>
                 </motion.div>
-                {i < kindnessChain.length - 1 && (
-                  <ArrowRight className="w-5 h-5 mx-2 text-muted-foreground" />
+              ))}
+            </div>
+
+            {/* About Section */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="glass-card p-8 rounded-3xl"
+            >
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                About Me
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Passionate about sharing knowledge and growing together. I specialize in web development and love helping others master complex concepts. Always learning, always building.
+              </p>
+            </motion.div>
+
+            {/* Verified Skills - The Blockchain Part */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="glass-card p-8 rounded-3xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
+                  Verified Skills
+                </h3>
+                <span className="text-xs py-1 px-3 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                  Blockchain Secured
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {displaySkills.length > 0 ? (
+                  displaySkills.map((skill, index) => (
+                    <div key={index} className="group relative flex items-center gap-2 pl-4 pr-3 py-2 rounded-full bg-white/5 border border-white/10 hover:border-primary/50 transition-colors">
+                      <span className="text-sm font-medium text-white">{skill.name}</span>
+
+                      {/* Blockchain Link Trigger */}
+                      <div className="relative">
+                        <LinkIcon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors cursor-help" />
+
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 rounded-lg bg-black/90 border border-white/20 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                          <p className="font-mono text-primary mb-1">On-Chain Verification:</p>
+                          <p className="font-mono break-all leading-tight">{skill.hash || getSkillHash(skill.name)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground italic">Complete onboarding to verify skills.</p>
                 )}
               </div>
-            ))}
-          </div>
+            </motion.div>
 
-          <div className="text-center mt-4">
-            <p className="text-lg">
-              <span className="text-primary font-bold">{kindnessChain.length - 1}</span>
-              <span className="text-muted-foreground"> people learned from your chain!</span>
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Upgrade CTA */}
-        {!user.isPro && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="glass-card p-6 rounded-2xl border-primary/30 gold-glow"
-          >
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Upgrade to PRO</h3>
-                <p className="text-muted-foreground">
-                  Unlock unlimited sessions, priority support, and exclusive features
-                </p>
+            {/* Activity Timeline Placeholder */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="glass-card p-8 rounded-3xl opacity-60"
+            >
+              <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
+                  <div>
+                    <p className="text-sm text-white">Joined the "React Masters" circle</p>
+                    <p className="text-xs text-muted-foreground">2 days ago</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-2 h-2 rounded-full bg-purple mt-2 shrink-0" />
+                  <div>
+                    <p className="text-sm text-white">Earned "Early Adopter" Badge</p>
+                    <p className="text-xs text-muted-foreground">1 week ago</p>
+                  </div>
+                </div>
               </div>
-              <button className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors gold-glow whitespace-nowrap">
-                Upgrade for ₹99/month
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </div>
+            </motion.div>
 
-      {/* Quiz Modal */}
-      <QuizModal />
-    </DashboardLayout>
-  );
-}
-
-// Sub-component for Quiz
-import { generateQuiz, QuizQuestion } from '@/services/gemini';
-import { useState } from 'react';
-import { Check, X as XIcon, Loader2, Award } from 'lucide-react';
-import { toast } from 'sonner';
-
-function QuizModal() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [topic, setTopic] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [currentQ, setCurrentQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResults, setShowResults] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-
-  const startQuiz = async () => {
-    if (!topic) return;
-    setLoading(true);
-    try {
-      const qs = await generateQuiz(topic);
-      setQuestions(qs);
-      setCurrentQ(0);
-      setScore(0);
-      setShowResults(false);
-      setIsOpen(true);
-    } catch (e) {
-      toast.error("Failed to generate quiz");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAnswer = (index: number) => {
-    setSelectedOption(index);
-    if (index === questions[currentQ].correctIndex) {
-      setScore(s => s + 1);
-    }
-
-    // Auto next after 1.5s
-    setTimeout(() => {
-      if (currentQ < questions.length - 1) {
-        setCurrentQ(c => c + 1);
-        setSelectedOption(null);
-      } else {
-        setShowResults(true);
-      }
-    }, 1500);
-  };
-
-  const closeQuiz = () => {
-    setIsOpen(false);
-    setQuestions([]);
-    setTopic('');
-  };
-
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="glass-card p-8 rounded-2xl flex flex-col items-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-          <p className="text-lg font-semibold">Generating Quiz for {topic}...</p>
+          </div>
         </div>
       </div>
-    );
-  }
-
-  if (!isOpen && !loading) {
-    // Render the trigger button via Portal or just return null and have a button elsewhere? 
-    // For simplicity in this edit, I'll attach a listener or just a floating button? 
-    // Better: The parent `Profile` should control this. 
-    // Refactoring a bit: Let's assume Profile calls this.
-    // Actually, let's just put the trigger button inside the "Verified Skills" section in the parent component
-    // But since I'm appending this code, I'll export it and let the user click a new floating button for now 
-    // or better, I will inject the UI into the Profile render in the next step or adjust the placement.
-
-    // WAIT: I can just render the button fixed or inject it.
-    // Let's render a "Verify New Skill" button at the bottom right or near the headers.
-    return null;
-  }
-
-  // NOTE: This implementation structure is a bit awkward with `replace_file_content` at the end. 
-  // I should have injected the state into the main component. 
-  // I will fix this by moving the logic INTO the main component in the next step.
-  return null;
+    </PageTransition>
+  );
 }

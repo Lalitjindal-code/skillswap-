@@ -27,7 +27,12 @@ export default function GroupJoin() {
   const handleJoin = async () => {
     setIsJoining(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    navigate(`/session/${id}`);
+    navigate(`/session/${id}`, {
+      state: {
+        mic: micOn,
+        cam: videoOn
+      }
+    });
   };
 
   return (
@@ -68,16 +73,15 @@ export default function GroupJoin() {
                   <Video className="w-12 h-12 text-muted-foreground" />
                 </div>
               )}
-              
+
               {/* Controls Overlay */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setMicOn(!micOn)}
-                  className={`p-3 rounded-full ${
-                    micOn ? 'bg-muted/80' : 'bg-red-500'
-                  }`}
+                  className={`p-3 rounded-full ${micOn ? 'bg-muted/80' : 'bg-red-500'
+                    }`}
                 >
                   <Mic className="w-5 h-5" />
                 </motion.button>
@@ -85,9 +89,8 @@ export default function GroupJoin() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setVideoOn(!videoOn)}
-                  className={`p-3 rounded-full ${
-                    videoOn ? 'bg-muted/80' : 'bg-red-500'
-                  }`}
+                  className={`p-3 rounded-full ${videoOn ? 'bg-muted/80' : 'bg-red-500'
+                    }`}
                 >
                   <Video className="w-5 h-5" />
                 </motion.button>

@@ -21,7 +21,12 @@ export default function ShadowJoin() {
   const handleEnter = async () => {
     setIsEntering(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    navigate(`/session/${id}`);
+    navigate(`/session/${id}`, {
+      state: {
+        mic: false,
+        cam: false
+      }
+    });
   };
 
   return (

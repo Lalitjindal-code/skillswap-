@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Pen,
@@ -44,6 +44,7 @@ const rtcConfig = {
 
 export default function Session() {
   const { id } = useParams();
+  const location = useLocation();
   const userId = useRef(`user-${Math.floor(Math.random() * 10000)}`).current; // Simple random ID
 
   // Canvas Refs
@@ -58,8 +59,8 @@ export default function Session() {
   const [noteIndex, setNoteIndex] = useState(0);
   const [messages, setMessages] = useState(chatMessages);
   const [newMessage, setNewMessage] = useState('');
-  const [videoOn, setVideoOn] = useState(true);
-  const [micOn, setMicOn] = useState(true);
+  const [videoOn, setVideoOn] = useState(location.state?.cam ?? true);
+  const [micOn, setMicOn] = useState(location.state?.mic ?? true);
 
   // WebRTC Refs
   const userVideoRef = useRef<HTMLVideoElement>(null);

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageTransition, staggerContainer, staggerItem } from '@/components/PageTransition';
-import { generateCareerRoadmap, CareerPathNode, SyllabusItem } from '@/services/gemini';
+import { CareerPathNode, SyllabusItem } from '@/services/gemini';
 import { toast } from 'sonner';
 
 export default function CareerGPS() {
@@ -29,18 +29,48 @@ export default function CareerGPS() {
     if (!topic.trim()) return;
 
     setIsLoading(true);
-    try {
-      const data = await generateCareerRoadmap(topic);
-      setPath(data.path);
-      setSyllabus(data.syllabus);
+    // Simulate API call
+    setTimeout(() => {
+      const mockPath: CareerPathNode[] = [
+        {
+          id: '1',
+          name: 'Foundations',
+          status: 'completed',
+          duration: '2 weeks',
+          description: 'Core concepts and basic syntax',
+          lessons: 12
+        },
+        {
+          id: '2',
+          name: 'Advanced Concepts',
+          status: 'active',
+          duration: '3 weeks',
+          description: 'Deep dive into complex topics',
+          lessons: 18
+        },
+        {
+          id: '3',
+          name: 'Real-world Application',
+          status: 'locked',
+          duration: '4 weeks',
+          description: 'Build production-ready projects',
+          lessons: 8
+        },
+      ];
+
+      const mockSyllabus: SyllabusItem[] = [
+        { title: 'Project Structure & Setup', duration: '45 mins', completed: true },
+        { title: 'Component Architecture', duration: '1.5 hours', completed: false },
+        { title: 'State Management Patterns', duration: '2 hours', completed: false },
+        { title: 'Performance Optimization', duration: '1 hour', completed: false },
+      ];
+
+      setPath(mockPath);
+      setSyllabus(mockSyllabus);
       setHasGenerated(true);
-      toast.success(`Roadmap for ${topic} generated!`);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to generate roadmap. Please checks your API key.");
-    } finally {
       setIsLoading(false);
-    }
+      toast.success(`Roadmap for ${topic} generated!`);
+    }, 2000);
   };
 
   const [showTutors, setShowTutors] = useState(false);

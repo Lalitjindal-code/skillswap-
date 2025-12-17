@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X, Radio, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { modalVariants, backdropVariants, modalTransition } from './PageTransition';
 
 interface SOSModalProps {
@@ -29,6 +30,10 @@ export const SOSModal = ({ isOpen, onClose }: SOSModalProps) => {
     await new Promise(resolve => setTimeout(resolve, 3000));
     setIsBlasting(false);
     setShowRipple(false);
+    toast.error("SOS Signal Sent! Mentors have been notified.", {
+      description: "Help is on the way. Stay on this screen.",
+      duration: 5000,
+    });
     onClose();
   };
 

@@ -1,34 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, User } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, KeyRound, LogOut, LayoutDashboard, Sparkles } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
 import { PageTransition } from '@/components/PageTransition';
 import { toast } from 'sonner';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtp, setShowOtp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
-  const { login, signup, loginWithGoogle } = useGlobal();
+  const { login, signup, verifyOtp, loginWithGoogle, user, logout } = useGlobal();
   const navigate = useNavigate();
+
+  // REMOVED AUTO-REDIRECT USE-EFFECT to satisfy user request of "asking for details first"
+  // Instead, we render a "Switch Account" view if logged in.
+
+  const handleContinue = () => {
+    if (user.hasCompletedOnboarding) {
+      toast.success(`Welcome back, ${user.name}!`);
+      navigate('/dashboard');
+    } else {
+      toast.info("Resuming your onboarding journey...");
+      navigate('/onboarding');
+    }
+  };
+
+  const handleSwitchAccount = async () => {
+    setIsLoading(true);
+    await logout();
+    setIsLoading(false);
+    toast.success("Signed out. Please enter new details.");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (isSignup) {
-        await signup(email, password);
-        toast.success('Account created! Please check your email.');
-        // Don't navigate immediately on signup if email confirmation is required, 
-        // but for now we can redirect or stay here. 
-        // Supabase default usually requires email update.
+      if (showOtp) {
+        // Verify OTP Stage
+        await verifyOtp(email, otp);
+        toast.success('Email verified successfully!');
+        // After verify, user.isLoggedIn becomes true, component re-renders, shows "Session Gate" or redirects?
+        // Let's rely on the user clicking "Continue" or auto-redirecting ONLY after explicit action?
+        // Actually, after explicit login, auto-redirect is fine.
+        // It's the "visiting page while already logged in" that was annoying.
+        navigate('/onboarding'); // Direct them after successful interaction
+      } else if (isSignup) {
+        // Init Signup
+        await signup(email, password, name);
+        toast.success('Confirmation code sent to your email!');
+        setShowOtp(true);
       } else {
+        // Normal Login
         await login(email, password);
         toast.success('Welcome back!');
+        // Manually navigate after explicit login action
+        // We can't know immediately if onboarding is done usually, but login() updates 'user'.
+        // For smoother UX, we can just check 'hasCompletedOnboarding' logic here if we wait?
+        // Simpler: Just refresh/navigate.
         navigate('/dashboard');
       }
     } catch (error: any) {
@@ -48,7 +84,56 @@ export default function Login() {
 
   const toggleMode = () => {
     setIsSignup(!isSignup);
+    setShowOtp(false); // Reset OTP state on mode switch
   };
+
+  // If already logged in, show "Session Gate"
+  if (user.isLoggedIn) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
+          </div>
+
+          <div className="glass-card p-8 rounded-2xl w-full max-w-md text-center border-primary/20 relative z-10">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full p-1 bg-gradient-to-br from-primary to-purple-600">
+              <img
+                src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`}
+                alt={user.name}
+                className="w-full h-full rounded-full bg-background object-cover"
+              />
+            </div>
+
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome back, {user.name}!</h2>
+            <p className="text-muted-foreground mb-8">You are currently signed in as {user.email}</p>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleContinue}
+                className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all gold-glow"
+              >
+                <span className="flex items-center gap-2">
+                  {user.hasCompletedOnboarding ? <LayoutDashboard className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                  {user.hasCompletedOnboarding ? "Go to Dashboard" : "Resume Onboarding"}
+                </span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={handleSwitchAccount}
+                className="w-full py-4 rounded-xl glass-card border border-white/10 hover:bg-white/5 font-medium flex items-center justify-center gap-2 transition-all text-muted-foreground hover:text-white"
+              >
+                <LogOut className="w-5 h-5" />
+                Switch Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
 
   return (
     <PageTransition>
@@ -109,67 +194,101 @@ export default function Login() {
                   transition={{ delay: 0.1 }}
                 >
                   <h1 className="text-2xl font-bold text-center mb-2 text-white">
-                    {isSignup ? 'Create Account' : 'Welcome Back'}
+                    {showOtp ? 'Check Your Email' : (isSignup ? 'Create Account' : 'Welcome Back')}
                   </h1>
                   <p className="text-muted-foreground text-center mb-8">
-                    {isSignup ? 'Start your learning journey today' : 'Sign in to continue your learning journey'}
+                    {showOtp
+                      ? `We've sent a 6-digit code to ${email}`
+                      : (isSignup ? 'Start your learning journey today' : 'Sign in to continue your learning journey')
+                    }
                   </p>
                 </motion.div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
-                  {isSignup && (
+                  {showOtp ? (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center space-y-4"
                     >
-                      <label className="text-sm font-medium text-foreground text-white">Full Name</label>
-                      <div className="relative group">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="John Doe"
-                          required={isSignup}
-                          className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
-                        />
+                      <div className="relative w-full flex justify-center">
+                        <div className="bg-white/10 p-2 rounded-xl">
+                          <InputOTP maxLength={6} value={otp} onChange={(val) => setOtp(val)}>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} className="border-white/20 text-white w-10 h-12" />
+                              <InputOTPSlot index={1} className="border-white/20 text-white w-10 h-12" />
+                              <InputOTPSlot index={2} className="border-white/20 text-white w-10 h-12" />
+                            </InputOTPGroup>
+                            <div className="w-4"></div>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={3} className="border-white/20 text-white w-10 h-12" />
+                              <InputOTPSlot index={4} className="border-white/20 text-white w-10 h-12" />
+                              <InputOTPSlot index={5} className="border-white/20 text-white w-10 h-12" />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Didn't receive code? <button type="button" onClick={() => signup(email, password, name)} className="text-primary hover:underline">Resend</button>
+                      </p>
                     </motion.div>
+                  ) : (
+                    <>
+                      {isSignup && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-2"
+                        >
+                          <label className="text-sm font-medium text-foreground text-white">Full Name</label>
+                          <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <input
+                              type="text"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              placeholder="John Doe"
+                              required={isSignup}
+                              className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground text-white">Email</label>
+                        <div className="relative group">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                          <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            required
+                            className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground text-white">Password</label>
+                        <div className="relative group">
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                          <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            required
+                            className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+                          />
+                        </div>
+                      </div>
+                    </>
                   )}
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground text-white">Email</label>
-                    <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        required
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground text-white">Password</label>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {!isSignup && (
+                  {!isSignup && !showOtp && (
                     <div className="flex items-center justify-between text-sm">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" className="rounded border-white/20 bg-muted accent-primary" />
@@ -196,7 +315,7 @@ export default function Login() {
                       />
                     ) : (
                       <>
-                        {isSignup ? 'Create Account' : 'Sign In'}
+                        {showOtp ? 'Verify Code' : (isSignup ? 'Create Account' : 'Sign In')}
                         <ArrowRight className="w-5 h-5" />
                       </>
                     )}

@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Sparkles,
   X,
-  Plus
+  Plus,
+  LogOut
 } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
 
@@ -58,9 +59,15 @@ export default function Onboarding() {
   const [animatingCoins, setAnimatingCoins] = useState(false);
   const [dynamicQuestions, setDynamicQuestions] = useState<any[]>([]);
 
-  const { addSkill, verifySkill, updateCoins } = useGlobal();
+  const { addSkill, verifySkill, updateCoins, updateProfile, logout } = useGlobal();
   const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  // Restore mockQuizDatabase and handlers
   const mockQuizDatabase: Record<string, any[]> = {
     'python': [
       { question: "What is a Tuple?", options: ["Immutable sequence", "Mutable array", "Hash map", "A loop"], correct: 0 },
@@ -129,7 +136,8 @@ export default function Onboarding() {
   const handleFinish = async () => {
     setAnimatingCoins(true);
     await new Promise(resolve => setTimeout(resolve, 600));
-    updateCoins(3); // Updated to 3 coins
+    updateCoins(3);
+    updateProfile({ hasCompletedOnboarding: true });
     await new Promise(resolve => setTimeout(resolve, 1000));
     navigate('/dashboard');
   };
@@ -424,7 +432,15 @@ export default function Onboarding() {
         </div>
 
         {/* Card */}
-        <div className="glass-card p-8 rounded-2xl">
+        <div className="glass-card p-8 rounded-2xl relative">
+          <button
+            onClick={handleLogout}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-red-500 transition-colors"
+            title="Log Out"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+
           <AnimatePresence mode="wait">
             {renderStep()}
           </AnimatePresence>

@@ -21,6 +21,7 @@ interface User {
   learningSkills: string[];
   isLoggedIn: boolean;
   isPro: boolean;
+  hasCompletedOnboarding: boolean;
 }
 
 interface Notification {
@@ -37,13 +38,15 @@ interface GlobalContextType {
   notifications: Notification[];
   setUser: React.Dispatch<React.SetStateAction<User>>;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateCoins: (amount: number) => void;
   addSkill: (skill: string, type: 'teach' | 'learn') => void;
   verifySkill: (skillName: string) => void;
   markNotificationRead: (id: string) => void;
+  verifyOtp: (email: string, token: string) => Promise<void>;
+  updateProfile: (data: Partial<User>) => void;
 }
 
 const defaultUser: User = {
@@ -57,6 +60,7 @@ const defaultUser: User = {
   learningSkills: [],
   isLoggedIn: false,
   isPro: false,
+  hasCompletedOnboarding: false,
 };
 
 const defaultNotifications: Notification[] = [
@@ -81,13 +85,13 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        fetchProfile(session.user.id, session.user.email);
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata?.name);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        fetchProfile(session.user.id, session.user.email);
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata?.name);
       } else {
         setUser(defaultUser);
       }
@@ -96,7 +100,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string, email?: string) => {
+  const fetchProfile = async (userId: string, email?: string, metadataName?: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -110,21 +114,23 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
           id: userId,
           isLoggedIn: true,
           email: data.email || email || '',
-          name: data.name || email?.split('@')[0] || 'User',
+          name: data.name || metadataName || email?.split('@')[0] || 'User',
           avatar: data.avatar_text || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
           coins: data.coins || 3,
           level: data.level || 0,
-          // Keep other fields default/local for now as DB schema expands
+          hasCompletedOnboarding: data.has_completed_onboarding || false,
         }));
       } else if (email) {
         // Fallback if profile trigger failed or slow
+        console.log("GlobalContext: Using fallback profile, forcing onboarding=false");
         setUser(prev => ({
           ...prev,
           id: userId,
           isLoggedIn: true,
           email: email,
-          name: email.split('@')[0],
+          name: metadataName || email.split('@')[0],
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+          hasCompletedOnboarding: false, // Explicitly force this
         }));
       }
     } catch (e) {
@@ -140,13 +146,27 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     if (error) throw error;
   };
 
-  const signup = async (email: string, password: string) => {
+  const signup = async (email: string, password: string, name: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name: name,
+        }
+      }
     });
     if (error) throw error;
     // Toast handled in UI
+  };
+
+  const verifyOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+    if (error) throw error;
   };
 
   const loginWithGoogle = async () => {
@@ -212,6 +232,14 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const updateProfile = (data: Partial<User>) => {
+    setUser(prev => ({ ...prev, ...data }));
+    if (user.id) {
+      // Fire and forget update to DB if fields map 1:1, otherwise just local for demo
+      supabase.from('profiles').update(data).eq('id', user.id).then();
+    }
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -226,6 +254,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         addSkill,
         verifySkill,
         markNotificationRead,
+        verifyOtp,
+        updateProfile,
       }}
     >
       {children}
