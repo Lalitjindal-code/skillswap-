@@ -168,7 +168,9 @@ export default function Landing() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <a
-                href="#features"
+                href="https://youtu.be/zCS9p263gY8?si=Jx9C8uIwPZI1M8B8"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-8 py-4 rounded-xl glass-card font-semibold text-lg hover:bg-secondary/10 transition-all card-title hover:scale-105 active:scale-95 duration-300"
               >
                 Watch Demo
@@ -380,7 +382,7 @@ export default function Landing() {
               <span className="font-semibold text-foreground">SkillSwap</span>
             </div>
             <p className="text-muted-foreground text-sm">
-              © 2024 SkillSwap. Your time, your currency.
+              © 2025 SkillSwap. Your time, your currency.
             </p>
           </div>
         </div>
