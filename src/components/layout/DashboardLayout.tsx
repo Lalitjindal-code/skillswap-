@@ -5,7 +5,7 @@ import {
   Home,
   Map,
   Users,
-  FileText,
+
   Settings,
   AlertTriangle,
   Search,
@@ -36,7 +36,7 @@ const navItems = [
   { path: '/opportunities', icon: Briefcase, label: 'Earn & Grow' },
   { path: '/career-gps', icon: Map, label: 'Roadmap' },
   { path: '/marketplace', icon: Users, label: 'Team' },
-  { path: '/profile/cv', icon: FileText, label: 'CV' },
+
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 

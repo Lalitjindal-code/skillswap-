@@ -7,44 +7,50 @@ import { PageTransition } from '@/components/PageTransition';
 export default function Pricing() {
     const plans = [
         {
-            name: "Free",
-            price: "$0",
-            description: "Perfect for getting started",
+            name: "Learner",
+            title: "Learner", // Display title if different from name, or just use name
+            price: "Free",
+            period: "",
+            description: "Essential access for casual learners",
             features: [
-                "Access to basic courses",
-                "Community support",
-                "3 AI Roadmaps/month",
-                "Basic Profile"
+                "5 Hours/month",
+                "Basic AI Notes",
+                "Community Access",
+                "Standard Support"
             ],
-            highlight: false
+            highlight: false,
+            buttonText: "Get Started"
         },
         {
-            name: "Pro",
-            price: "$19",
+            name: "PRO",
+            title: "PRO",
+            price: "₹99",
             period: "/month",
-            description: "Best for serious learners",
+            description: "Unlock your full potential",
             features: [
-                "Unlimited AI Roadmaps",
-                "Verified Skill Badges",
-                "Priority Mentor Matching",
-                "Ad-free Experience",
-                "Advanced Analytics"
+                "Unlimited Hours",
+                "Advanced AI Notes",
+                "Shadow Mode",
+                "Priority Support",
+                "Verified Badges"
             ],
-            highlight: true
+            highlight: true,
+            buttonText: "Get Started"
         },
         {
-            name: "Team",
-            price: "$49",
-            period: "/month",
-            description: "For small groups & startups",
+            name: "Time Top-Up",
+            title: "Time Top-Up", // Using title for display consistency
+            price: "₹49",
+            period: "/5 coins",
+            description: "Add hours whenever you need",
             features: [
-                "Everything in Pro",
-                "Team Dashboard",
-                "Collaborative Learning",
-                "Admin Controls",
-                "Dedicated Support"
+                "Instant Coins",
+                "No Expiry",
+                "Transfer to Friends",
+                "Bonus on Bulk"
             ],
-            highlight: false
+            highlight: false,
+            buttonText: "Get Started"
         }
     ];
 
@@ -77,8 +83,8 @@ export default function Pricing() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
                                 className={`relative p-8 rounded-3xl border flex flex-col ${plan.highlight
-                                        ? 'bg-primary/10 border-primary/50 shadow-[0_0_40px_rgba(250,204,21,0.15)] scale-105 z-10'
-                                        : 'glass-card border-white/10 hover:border-white/20'
+                                    ? 'bg-primary/10 border-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.15)] scale-105 z-10'
+                                    : 'glass-card border-white/10 hover:border-white/20'
                                     }`}
                             >
                                 {plan.highlight && (
@@ -88,12 +94,15 @@ export default function Pricing() {
                                 )}
 
                                 <div className="mb-8">
-                                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                                    <p className="text-muted-foreground mb-6">{plan.description}</p>
-                                    <div className="flex items-baseline">
-                                        <span className="text-4xl font-bold">{plan.price}</span>
-                                        <span className="text-muted-foreground ml-1">{plan.period}</span>
-                                    </div>
+                                    <h3 className="text-2xl font-bold mb-2">{plan.title || plan.name}</h3>
+                                    {plan.name === 'Learner' && <h4 className="text-4xl font-bold mb-6">Free</h4>}
+                                    {plan.name !== 'Learner' && (
+                                        <div className="flex items-baseline mb-6">
+                                            <span className="text-4xl font-bold">{plan.price}</span>
+                                            <span className="text-muted-foreground ml-1">{plan.period}</span>
+                                        </div>
+                                    )}
+                                    {plan.name === 'Learner' && <div className="mb-8"></div>} {/* Spacer */}
                                 </div>
 
                                 <div className="space-y-4 mb-8 flex-1">
@@ -108,10 +117,10 @@ export default function Pricing() {
                                 </div>
 
                                 <button className={`w-full py-4 rounded-xl font-bold transition-all ${plan.highlight
-                                        ? 'bg-primary text-primary-foreground hover:scale-105 shadow-lg shadow-primary/25'
-                                        : 'bg-white/10 hover:bg-white/20'
+                                    ? 'bg-primary text-primary-foreground hover:scale-105 shadow-lg shadow-primary/25'
+                                    : 'bg-white/10 hover:bg-white/20'
                                     }`}>
-                                    {plan.highlight ? 'Get Started Pro' : 'Choose ' + plan.name}
+                                    {plan.buttonText}
                                 </button>
                             </motion.div>
                         ))}
