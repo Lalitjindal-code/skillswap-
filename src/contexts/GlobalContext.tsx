@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+import { mockDb, MockUser } from '@/services/mockDb';
+
 interface Skill {
   name: string;
   verified: boolean;
@@ -9,7 +11,7 @@ interface Skill {
   hash: string;
 }
 
-interface User {
+export interface User {
   id?: string;
   name: string;
   email: string;
@@ -22,6 +24,9 @@ interface User {
   isLoggedIn: boolean;
   isPro: boolean;
   hasCompletedOnboarding: boolean;
+  streak: number;
+  lastLoginDate: string;
+  lastSpinDate: string;
 }
 
 interface Notification {
@@ -47,13 +52,14 @@ interface GlobalContextType {
   markNotificationRead: (id: string) => void;
   verifyOtp: (email: string, token: string) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  checkStreak: () => void;
 }
 
 const defaultUser: User = {
   name: '',
   email: '',
   avatar: '',
-  coins: 0, // Default starting coins
+  coins: 0,
   level: 0,
   levelTitle: 'Novice',
   verifiedSkills: [],
@@ -61,6 +67,9 @@ const defaultUser: User = {
   isLoggedIn: false,
   isPro: false,
   hasCompletedOnboarding: false,
+  streak: 0,
+  lastLoginDate: '',
+  lastSpinDate: '',
 };
 
 const defaultNotifications: Notification[] = [
@@ -80,19 +89,26 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User>(defaultUser);
   const [notifications, setNotifications] = useState<Notification[]>(defaultNotifications);
 
-  // Sync Auth State
+  // Sync Auth State & Load from MockDb
   useEffect(() => {
-    // Check active session
+    // Check localStorage first for simpler persistence in this demo
+    const localUser = mockDb.getUser();
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        fetchProfile(session.user.id, session.user.email, session.user.user_metadata?.name);
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata?.name, localUser);
+      } else if (localUser && localUser.lastLoginDate) {
+        // If no supabase session but valid mockDb user (mocking persistent login for demo)
+        // In a real app we'd rely solely on Supabase, but here we merge.
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        fetchProfile(session.user.id, session.user.email, session.user.user_metadata?.name);
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata?.name, mockDb.getUser());
       } else {
+        // Don't fully reset if we want to keep some local demo state, 
+        // but typically we should. For this requirement, we persist data.
         setUser(defaultUser);
       }
     });
@@ -100,7 +116,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string, email?: string, metadataName?: string) => {
+  const fetchProfile = async (userId: string, email?: string, metadataName?: string, localUser?: MockUser | null) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -109,6 +125,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (data) {
+        // Merge Supabase data with MockDb data (localUser wins for new fields)
         setUser(prev => ({
           ...prev,
           id: userId,
@@ -116,14 +133,15 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
           email: data.email || email || '',
           name: data.name || metadataName || email?.split('@')[0] || 'User',
           avatar: data.avatar_text || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
-          // Force 0 coins if onboarding not complete to ensure exactly 5 after bonus
-          coins: data.has_completed_onboarding ? (data.coins ?? 0) : 0,
+          coins: localUser?.coins ?? (data.has_completed_onboarding ? (data.coins ?? 0) : 0), // Prefer local for demo continuity
           level: data.level || 0,
           hasCompletedOnboarding: data.has_completed_onboarding || false,
+          streak: localUser?.streak || 0,
+          lastLoginDate: localUser?.lastLoginDate || '',
+          lastSpinDate: localUser?.lastSpinDate || '',
         }));
       } else if (email) {
-        // Fallback if profile trigger failed or slow
-        console.log("GlobalContext: Using fallback profile, forcing onboarding=false");
+        // Fallback / Demo Mode
         setUser(prev => ({
           ...prev,
           id: userId,
@@ -131,7 +149,11 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
           email: email,
           name: metadataName || email.split('@')[0],
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-          hasCompletedOnboarding: false, // Explicitly force this
+          hasCompletedOnboarding: false,
+          coins: localUser?.coins ?? 0,
+          streak: localUser?.streak || 0,
+          lastLoginDate: localUser?.lastLoginDate || '',
+          lastSpinDate: localUser?.lastSpinDate || '',
         }));
       }
     } catch (e) {
@@ -158,7 +180,6 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
       }
     });
     if (error) throw error;
-    // Toast handled in UI
   };
 
   const verifyOtp = async (email: string, token: string) => {
@@ -187,13 +208,23 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateCoins = async (amount: number) => {
-    setUser(prev => ({
-      ...prev,
-      coins: prev.coins + amount,
-    }));
-    // TODO: Sync to DB
+    setUser(prev => {
+      const newBalance = prev.coins + amount;
+      const updatedUser = { ...prev, coins: newBalance };
+
+      // Sync to MockDb
+      mockDb.saveUser({
+        coins: newBalance,
+        streak: updatedUser.streak,
+        lastLoginDate: updatedUser.lastLoginDate,
+        lastSpinDate: updatedUser.lastSpinDate
+      });
+
+      return updatedUser;
+    });
+
     if (user.id) {
-      // Fire and forget update
+      // Fire and forget update to real DB
       const newBalance = user.coins + amount;
       await supabase.from('profiles').update({ coins: newBalance }).eq('id', user.id);
     }
@@ -234,10 +265,38 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateProfile = async (data: Partial<User>) => {
-    setUser(prev => ({ ...prev, ...data }));
+    setUser(prev => {
+      const updated = { ...prev, ...data };
+      mockDb.saveUser({
+        coins: updated.coins,
+        streak: updated.streak,
+        lastLoginDate: updated.lastLoginDate,
+        lastSpinDate: updated.lastSpinDate
+      });
+      return updated;
+    });
+
     if (user.id) {
-      // Fire and forget update to DB if fields map 1:1, otherwise just local for demo
       await supabase.from('profiles').update(data).eq('id', user.id);
+    }
+  };
+
+  const checkStreak = () => {
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const lastLogin = user.lastLoginDate;
+
+    if (lastLogin !== today) {
+      let newStreak = user.streak;
+      if (lastLogin === yesterday) {
+        newStreak += 1;
+        toast.success(`🔥 Streak Increased! ${newStreak} Day Streak!`);
+      } else {
+        newStreak = 1;
+        // Don't toast on first login or broken streak, just silent update
+      }
+
+      updateProfile({ lastLoginDate: today, streak: newStreak });
     }
   };
 
@@ -257,6 +316,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         markNotificationRead,
         verifyOtp,
         updateProfile,
+        checkStreak,
       }}
     >
       {children}

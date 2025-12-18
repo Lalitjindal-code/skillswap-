@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -62,10 +62,18 @@ const initialSessions = [
   { id: 3, title: 'Node.js REST APIs', mentor: 'Raj', time: '11:00 AM', date: 'Dec 18' },
 ];
 
+
+
+// ... imports
+
 export default function Dashboard() {
-  const { user } = useGlobal();
+  const { user, checkStreak } = useGlobal();
   const [sessions, setSessions] = useState(initialSessions);
   const [bookingOpen, setBookingOpen] = useState(false);
+
+  useEffect(() => {
+    checkStreak();
+  }, []); // Run once on mount
 
   const handleBookSession = (newSession: any) => {
     setSessions([...sessions, { ...newSession, id: Date.now() }]);
@@ -250,6 +258,8 @@ export default function Dashboard() {
 
             {/* Right Column (Schedule & Widgets) */}
             <div className="lg:col-span-1 space-y-6">
+
+
               {/* Upcoming Schedule Widget */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

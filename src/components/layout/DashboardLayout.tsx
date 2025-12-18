@@ -15,10 +15,16 @@ import {
   BarChart3,
   ChevronDown,
   Trophy,
+  Swords,
+  Briefcase,
+  Flame,
 } from 'lucide-react';
 import { useGlobal } from '@/contexts/GlobalContext';
 import { SOSModal } from '@/components/SOSModal';
 import { NotificationDropdown } from '@/components/NotificationDropdown';
+import { LevelDetailsModal } from '@/components/LevelDetailsModal';
+import { TransactionHistoryModal } from '@/components/TransactionHistoryModal';
+import { VisualStatsModal } from '@/components/VisualStatsModal';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,17 +32,13 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Home' },
+  { path: '/arena', icon: Swords, label: 'Skill Arena' },
+  { path: '/opportunities', icon: Briefcase, label: 'Earn & Grow' },
   { path: '/career-gps', icon: Map, label: 'Roadmap' },
   { path: '/marketplace', icon: Users, label: 'Team' },
   { path: '/profile/cv', icon: FileText, label: 'CV' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
-
-import { LevelDetailsModal } from '@/components/LevelDetailsModal';
-import { TransactionHistoryModal } from '@/components/TransactionHistoryModal';
-import { VisualStatsModal } from '@/components/VisualStatsModal';
-
-// ... (inside component)
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user } = useGlobal();
@@ -67,7 +69,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Sidebar - NO CHANGE */}
+      {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.aside
@@ -105,10 +107,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   </Link>
                 );
               })}
-
             </nav>
 
-            {/* Gamification Section - NO CHANGE */}
+            {/* Gamification Section */}
             <div className="px-3 pb-3">
               <button
                 onClick={() => setGamificationOpen(!gamificationOpen)}
@@ -255,6 +256,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Streak Badge */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-500 border border-orange-500/30">
+              <Flame className="w-4 h-4 fill-orange-500" />
+              <span className="font-bold text-sm">{user.streak} Days</span>
+            </div>
+
             {/* Coins Pill - Clickable for Transaction History */}
             <button
               onClick={() => setTransactionModalOpen(true)}
@@ -304,4 +311,3 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     </div>
   );
 };
-
