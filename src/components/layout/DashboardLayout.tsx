@@ -286,7 +286,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <BarChart3 className="w-5 h-5 card-text" />
             </button>
 
-            <Link to="/profile/cv" className="w-10 h-10 rounded-full bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center border-2 border-primary overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all">
+            <Link to="/profile" className="w-10 h-10 rounded-full bg-gradient-to-br from-teal to-teal-dark flex items-center justify-center border-2 border-primary overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all">
               <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="Profile" className="w-full h-full object-cover" />
             </Link>
           </div>
