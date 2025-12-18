@@ -41,19 +41,19 @@ interface GlobalContextType {
   signup: (email: string, password: string, name: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  updateCoins: (amount: number) => void;
+  updateCoins: (amount: number) => Promise<void>;
   addSkill: (skill: string, type: 'teach' | 'learn') => void;
   verifySkill: (skillName: string) => void;
   markNotificationRead: (id: string) => void;
   verifyOtp: (email: string, token: string) => Promise<void>;
-  updateProfile: (data: Partial<User>) => void;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const defaultUser: User = {
   name: '',
   email: '',
   avatar: '',
-  coins: 3, // Default starting coins
+  coins: 0, // Default starting coins
   level: 0,
   levelTitle: 'Novice',
   verifiedSkills: [],
@@ -116,7 +116,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
           email: data.email || email || '',
           name: data.name || metadataName || email?.split('@')[0] || 'User',
           avatar: data.avatar_text || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
-          coins: data.coins || 3,
+          // Force 0 coins if onboarding not complete to ensure exactly 5 after bonus
+          coins: data.has_completed_onboarding ? (data.coins ?? 0) : 0,
           level: data.level || 0,
           hasCompletedOnboarding: data.has_completed_onboarding || false,
         }));
@@ -185,7 +186,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     toast.success('Logged out successfully');
   };
 
-  const updateCoins = (amount: number) => {
+  const updateCoins = async (amount: number) => {
     setUser(prev => ({
       ...prev,
       coins: prev.coins + amount,
@@ -194,7 +195,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     if (user.id) {
       // Fire and forget update
       const newBalance = user.coins + amount;
-      supabase.from('profiles').update({ coins: newBalance }).eq('id', user.id).then();
+      await supabase.from('profiles').update({ coins: newBalance }).eq('id', user.id);
     }
   };
 
@@ -232,11 +233,11 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  const updateProfile = (data: Partial<User>) => {
+  const updateProfile = async (data: Partial<User>) => {
     setUser(prev => ({ ...prev, ...data }));
     if (user.id) {
       // Fire and forget update to DB if fields map 1:1, otherwise just local for demo
-      supabase.from('profiles').update(data).eq('id', user.id).then();
+      await supabase.from('profiles').update(data).eq('id', user.id);
     }
   };
 

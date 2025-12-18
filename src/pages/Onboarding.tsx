@@ -67,6 +67,8 @@ export default function Onboarding() {
     navigate('/login');
   };
 
+  const [isClaimed, setIsClaimed] = useState(false);
+
   // Restore mockQuizDatabase and handlers
   const mockQuizDatabase: Record<string, any[]> = {
     'python': [
@@ -134,11 +136,14 @@ export default function Onboarding() {
   };
 
   const handleFinish = async () => {
+    if (isClaimed) return;
+    setIsClaimed(true);
     setAnimatingCoins(true);
     await new Promise(resolve => setTimeout(resolve, 600));
-    updateCoins(3);
-    updateProfile({ hasCompletedOnboarding: true });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Await database updates to ensure persistence
+    await updateCoins(5);
+    await updateProfile({ hasCompletedOnboarding: true });
+
     navigate('/dashboard');
   };
 
@@ -365,7 +370,7 @@ export default function Onboarding() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center gold-glow">
                 <Sparkles className="w-10 h-10 text-primary-foreground" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Welcome to SkillSync!</h2>
+              <h2 className="text-2xl font-bold mb-2">Welcome to SkillSwap!</h2>
               <p className="text-muted-foreground">
                 Here's your starter reward
               </p>
@@ -389,7 +394,7 @@ export default function Onboarding() {
                     animate={animatingCoins ? { scale: [1, 1.3, 1] } : {}}
                     className="text-5xl font-bold text-gradient-gold"
                   >
-                    {animatingCoins ? '3' : '0'} → 3
+                    {animatingCoins ? '5' : '0'} → 5
                   </motion.p>
                   <p className="text-muted-foreground">Time Coins</p>
                 </div>
@@ -399,6 +404,7 @@ export default function Onboarding() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              disabled={isClaimed}
               onClick={handleFinish}
               className="px-10 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg gold-glow flex items-center justify-center gap-2 mx-auto"
             >
